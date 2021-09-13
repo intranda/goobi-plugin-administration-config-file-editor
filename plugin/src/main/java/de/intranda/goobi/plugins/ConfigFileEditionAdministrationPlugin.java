@@ -10,10 +10,10 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @PluginImplementation
 @Log4j2
-public class SampleAdministrationPlugin implements IAdministrationPlugin {
+public class ConfigFileEditionAdministrationPlugin implements IAdministrationPlugin {
 
     @Getter
-    private String title = "intranda_administration_sample";
+    private String title = "intranda_administration_config_file_edition";
 
     @Getter
     private String value;
@@ -25,14 +25,14 @@ public class SampleAdministrationPlugin implements IAdministrationPlugin {
 
     @Override
     public String getGui() {
-        return "/uii/plugin_administration_sample.xhtml";
+        return "/uii/plugin_administration_config-file-edition.xhtml";
     }
 
     /**
      * Constructor
      */
-    public SampleAdministrationPlugin() {
-        log.info("Sample admnistration plugin started");
+    public ConfigFileEditionAdministrationPlugin() {
+        log.info("Config File Edition admnistration plugin started");
         value = ConfigPlugins.getPluginConfig(title).getString("value", "default value");
     }   
 }
