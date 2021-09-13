@@ -1,4 +1,4 @@
-# Goobi workflow Plugin: goobi-plugin-administration-config-file-edition
+# Goobi workflow Plugin: goobi-plugin-administration-config-file-editor
 
 <img src="https://goobi.io/wp-content/uploads/logo_goobi_plugin.png" align="right" style="margin:0 0 20px 20px;" alt="Plugin for Goobi workflow" width="175" height="109">
 
@@ -12,7 +12,7 @@ More information about the functionality of this plugin and the complete documen
 
 Detail | Description
 --- | ---
-**Plugin identifier**       | intranda_administration_config_file_edition
+**Plugin identifier**       | intranda_administration_config_file_editor
 **Plugin type**             | Administration plugin
 **Licence**                 | GPL 2.0 or newer
 **Documentation (German)**  | - no documentation available -

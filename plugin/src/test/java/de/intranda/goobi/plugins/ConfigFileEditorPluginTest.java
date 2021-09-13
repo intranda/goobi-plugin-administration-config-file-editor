@@ -6,7 +6,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-public class ConfigFileEditionPluginTest {
+public class ConfigFileEditorPluginTest {
 
     @Test
     public void testVersion() throws IOException {
