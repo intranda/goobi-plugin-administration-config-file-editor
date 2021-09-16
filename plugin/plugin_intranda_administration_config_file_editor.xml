@@ -1,6 +1,9 @@
 <config_plugin>
-	
-	<!-- configuration item as sample -->
-	<value>sample value from config</value>
-	
+
+	<configFileDirectory>/opt/digiverso/goobi/config/</configFileDirectory>
+	<!-- By editing a config file in the browser GUI, a backup file will be stored in the backup directory -->
+	<configFileBackupDirectory>/opt/digiverso/goobi/config/backup/</configFileBackupDirectory>
+	<!-- backup files will be stored as config.xml.1, config.xml.2, ..., config.xml.n -->
+	<numberOfBackupFiles>8</numberOfBackupFiles>
+
 </config_plugin>
