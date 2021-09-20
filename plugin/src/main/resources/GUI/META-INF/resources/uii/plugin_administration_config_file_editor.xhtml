@@ -45,7 +45,14 @@
 		<h:panelGroup rendered="#{LoginForm.hasRole('Plugin_administration_config_file_editor')}">
 			<div class="row">
 				<h:form id="configFileEditorForm">
-					<p:remoteCommand name="getTypeOfConfigFile" actionListener="#{AdministrationForm.administrationPlugin.getCurrentConfigFileType()}" style="display: none;" />
+					<!--
+					THIS HIDDEN DIV MUST BE RENDERED TO GET THE CURRENT CONFIG FILE TYPE
+					FROM THE BACKEND TO SET THE SYNTAX HIGHLIGHTING IN CODE MIRROR.
+					DO NOT REMOVE IT.
+					-->
+					<div id="currentConfigFileType" style="position: absolute; visibility: hidden">
+						#{AdministrationForm.administrationPlugin.currentConfigFileType}
+					</div>
 					<div class="col-sm-4">
 						<div class="box box-color box-bordered">
 							<div class="box-title">
@@ -60,8 +67,7 @@
 									id="config_file_table"
 									styleClass="table table-hover table-nomargin dataTable table-bordered responsive"
 									var="item"
-									value="#{AdministrationForm.administrationPlugin.configFiles}"
-									varStatus="status">
+									value="#{AdministrationForm.administrationPlugin.configFiles}">
 									<h:column>
 										<f:facet name="header">
 											<h:outputText value="#{msgs.configFileTitle}" />
@@ -72,7 +78,7 @@
 										<f:facet name="header">
 											<h:outputText value="#{msgs.zuletztBearbeitet}" />
 										</f:facet>
-										<h:outputText value="#{AdministrationForm.administrationPlugin.configFileDates.get(status.index)}" />
+										<h:outputText value="#{item.lastModified}" />
 									</h:column>
 									<h:column>
 										<f:facet name="header">

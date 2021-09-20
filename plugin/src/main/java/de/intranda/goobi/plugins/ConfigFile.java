@@ -2,6 +2,7 @@ package de.intranda.goobi.plugins;
 
 import java.nio.file.Path;
 import lombok.Getter;
+import lombok.Setter;
 
 public class ConfigFile {
 
@@ -10,6 +11,10 @@ public class ConfigFile {
 
     @Getter
     private Type type;
+
+    @Getter
+    @Setter
+    private String lastModified;
 
     public ConfigFile(Path path, Type type) {
         this.fileName = path.getFileName().toString();

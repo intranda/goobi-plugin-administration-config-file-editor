@@ -1,12 +1,12 @@
 var configFileEditor;
 function initConfigFileEditor() {
 	var configFileTextArea = document.getElementById("configFileEditor");
-	let type = getTypeOfConfigFile();
-	alert("Type: " + type);
-	console.error("Type: " + type);
+	let type = "xml";
+	let typeElement = document.getElementById("currentConfigFileType");
+	if (typeElement) {
+		type = typeElement.innerHTML.trim();
+	}
 	if (configFileTextArea) {
-		alert("Type: " + type);
-		console.error("Type: " + type);
 		configFileEditor = CodeMirror.fromTextArea(configFileTextArea, {
 			lineNumbers: true,
 			mode: type

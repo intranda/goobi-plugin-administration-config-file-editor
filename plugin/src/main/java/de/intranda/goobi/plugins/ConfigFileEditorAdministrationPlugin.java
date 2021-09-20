@@ -49,13 +49,10 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
      * null means that no config file is selected
      */
     @Getter
-    @Setter
     private String currentConfigFileFileContent = null;
 
-    private String currentConfigFileType;
-
     @Getter
-    private List<String> configFileDates;
+    private String currentConfigFileType;
 
     /**
      * Constructor
@@ -84,18 +81,22 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     }
 
     private void initConfigFileDates() {
-        this.configFileDates = new ArrayList<>();
         StorageProviderInterface storageProvider = StorageProvider.getInstance();
         for (int index = 0; index < this.configFiles.size(); index++) {
             try {
                 long lastModified =
                         storageProvider.getLastModifiedDate(Paths.get(ConfigFileUtils.getConfigFileDirectory() + this.configFiles.get(index).getFileName()));
                 SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-                this.configFileDates.add(formatter.format(lastModified));
+                this.configFiles.get(index).setLastModified(formatter.format(lastModified));
             } catch (IOException ioException) {
-                this.configFileDates.add("[no date available]");
+                this.configFiles.get(index).setLastModified("[no date available]");
             }
         }
+    }
+
+    public void setCurrentConfigFileFileContent(String content) {
+        log.error("Setter: " + content);
+        this.currentConfigFileFileContent = content.replace("&", "&amp;");
     }
 
     public List<ConfigFile> getConfigFiles() {
@@ -112,11 +113,6 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
 
     public void setCurrentConfigFileIndex(int index) {
         this.setConfigFile(index);
-    }
-
-    public String getCurrentConfigFileType() {
-        log.error("Type: " + this.currentConfigFileType);
-        return this.currentConfigFileType;
     }
 
     public String getCurrentConfigFileFileName() {
@@ -180,7 +176,29 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             return false;
         }
         String fileContent = ConfigFileUtils.readFile(this.getCurrentConfigFileFileName());
-        String editorContent = this.currentConfigFileFileContent.replace("\n", "\r\n");
+        fileContent = fileContent.replace("\r\n", "\n");
+        fileContent = fileContent.replace("\r", "\n");
+        String editorContent = this.currentConfigFileFileContent;
+        log.error("file:\n" + fileContent);
+        log.error("editor:\n" + editorContent);
+        /*
+        byte[] fileBytes = fileContent.getBytes();
+        byte[] editorBytes = editorContent.getBytes();
+        int index = 0;
+        while (index < 200 && index < fileBytes.length || index < editorBytes.length) {
+            if (index < fileBytes.length) {
+                log.error("file:   " + fileBytes[index] + " " + (char)(fileBytes[index]));
+            } else {
+                log.error("file:   " + 0);
+            }
+            if (index < editorBytes.length) {
+                log.error("editor: " + editorBytes[index] + " " + (char)(editorBytes[index]));
+            } else {
+                log.error("editor: " + 0);
+            }
+            index++;
+        }
+        */
         return !fileContent.equals(editorContent);
     }
 
