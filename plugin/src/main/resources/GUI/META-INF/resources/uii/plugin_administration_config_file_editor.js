@@ -25,8 +25,17 @@ function initConfigFileEditor() {
 }
 function loadEditorContent() {
 	var configFileTextAreaBase64 = document.getElementById("configFileEditorForm:configFileEditorBase64");
+	let string = configFileEditor.getValue();
+	alert("Load: " + string);
+	let index = 0;
+	while (index < string.length) {
+		let character = string.charAt(index);
+		if (character > 127) {
+			alert(character);
+		}
+		index++;
+	}
 	configFileTextAreaBase64.value = window.btoa(configFileEditor.getValue());
-	alert("value: " + configFileTextAreaBase64.value);
 }
 function loadEditorContentAndInit() {
 	loadEditorContent();
