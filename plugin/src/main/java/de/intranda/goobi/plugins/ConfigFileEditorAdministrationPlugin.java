@@ -1,9 +1,11 @@
 package de.intranda.goobi.plugins;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import org.apache.commons.configuration.XMLConfiguration;
@@ -49,7 +51,13 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
      * null means that no config file is selected
      */
     @Getter
+    @Setter
     private String currentConfigFileFileContent = null;
+
+    /**
+     * null means that no config file is selected
+     */
+    private String currentConfigFileFileContentBase64 = null;
 
     @Getter
     private String currentConfigFileType;
@@ -84,8 +92,8 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         StorageProviderInterface storageProvider = StorageProvider.getInstance();
         for (int index = 0; index < this.configFiles.size(); index++) {
             try {
-                long lastModified =
-                        storageProvider.getLastModifiedDate(Paths.get(ConfigFileUtils.getConfigFileDirectory() + this.configFiles.get(index).getFileName()));
+                String pathName = ConfigFileUtils.getConfigFileDirectory() + this.configFiles.get(index).getFileName();
+                long lastModified = storageProvider.getLastModifiedDate(Paths.get(pathName));
                 SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                 this.configFiles.get(index).setLastModified(formatter.format(lastModified));
             } catch (IOException ioException) {
@@ -94,9 +102,21 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         }
     }
 
-    public void setCurrentConfigFileFileContent(String content) {
-        log.error("Setter: " + content);
-        this.currentConfigFileFileContent = content.replace("&", "&amp;");
+    public void setCurrentConfigFileFileContentBase64(String content) {
+        String base64 = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPG9wYWNDYXRhbG9ndWVzPgogICAgPGRvY3R5cGVzPgogICAgICAgIDx0eXBlIGlzQ29udGFpbmVkV29yaz0iZmFsc2UiIGlzTXVsdGlWb2x1bWU9ImZhbHNlIiBpc1BlcmlvZGljYWw9ImZhbHNlIiBydWxlc2V0VHlwZT0iTW9ub2dyYXBoIiB0aWZIZWFkZXJUeXBlPSJNb25vZ3JhcGhpZSIgdGl0bGU9Im1vbm9ncmFwaCI+CiAgICAgICAgICAgIDxsYWJlbCBsYW5ndWFnZT0iZGUiPk1vbm9ncmFwaGllPC9sYWJlbD4KICAgICAgICAgICAgPGxhYmVsIGxhbmd1YWdlPSJlbiI+TW9ub2dyYXBoPC9sYWJlbD4KICAgICAgICAgICAgPG1hcHBpbmc+QWE8L21hcHBpbmc+CiAgICAgICAgICAgIDxtYXBwaW5nPk9hPC9tYXBwaW5nPgogICAgICAgICAgICA8bWFwcGluZz5Nb25vZ3JhcGg8L21hcHBpbmc+CiAgICAgICAgPC90eXBlPgogICAgICAgIDx0eXBlIGlzQ29udGFpbmVkV29yaz0iZmFsc2UiIGlzTXVsdGlWb2x1bWU9ImZhbHNlIiBpc1BlcmlvZGljYWw9ImZhbHNlIiBydWxlc2V0VHlwZT0iTWFudXNjcmlwdCIgdGlmSGVhZGVyVHlwZT0iSGFuZHNjaHJpZnQiIHRpdGxlPSJtYW51c2NyaXB0Ij4KICAgICAgICAgICAgPGxhYmVsIGxhbmd1YWdlPSJkZSI+SGFuZHNjaHJpZnQ8L2xhYmVsPgogICAgICAgICAgICA8bGFiZWwgbGFuZ3VhZ2U9ImVuIj5NYW51c2NyaXB0PC9sYWJlbD4KICAgICAgICAgICAgPG1hcHBpbmc+SGE8L21hcHBpbmc+CiAgICAgICAgICAgIDxtYXBwaW5nPk1hbnVzY3JpcHQ8L21hcHBpbmc+CiAgICAgICAgPC90eXBlPgogICAgICAgIDx0eXBlIGlzQ29udGFpbmVkV29yaz0iZmFsc2UiIGlzTXVsdGlWb2x1bWU9ImZhbHNlIiBpc1BlcmlvZGljYWw9ImZhbHNlIiBydWxlc2V0VHlwZT0iU2luZ2xlTWFwIiB0aWZIZWFkZXJUeXBlPSJLYXJ0ZSIgdGl0bGU9Im1hcCI+CiAgICAgICAgICAgIDxsYWJlbCBsYW5ndWFnZT0iZGUiPkthcnRlPC9sYWJlbD4KICAgICAgICAgICAgPGxhYmVsIGxhbmd1YWdlPSJlbiI+TWFwPC9sYWJlbD4KICAgICAgICAgICAgPG1hcHBpbmc+S2E8L21hcHBpbmc+CiAgICAgICAgICAgIDxtYXBwaW5nPlNpbmdsZU1hcDwvbWFwcGluZz4KICAgICAgICA8L3R5cGU+CiAgICAgICAgPHR5cGUgaXNDb250YWluZWRXb3JrPSJmYWxzZSIgaXNNdWx0aVZvbHVtZT0iZmFsc2UiIGlzUGVyaW9kaWNhbD0iZmFsc2UiIHJ1bGVzZXRUeXBlPSJNdXNpY1N1cHBsaWVzIiB0aWZIZWFkZXJUeXBlPSJNdXNpa2FsaWUiIHRpdGxlPSJtdXNpY3N1cHBsaWVzIj4KICAgICAgICAgICAgPGxhYmVsIGxhbmd1YWdlPSJkZSI+TXVzaWthbGllPC9sYWJlbD4KICAgICAgICAgICAgPGxhYmVsIGxhbmd1YWdlPSJlbiI+TXVzaWMgc3VwcGxpZXM8L2xhYmVsPgogICAgICAgICAgICA8bWFwcGluZz5NYTwvbWFwcGluZz4KICAgICAgICAgICAgPG1hcHBpbmc+TXVzaWNTdXBwbGllczwvbWFwcGluZz4KICAgICAgICA8L3R5cGU+CiAgICAgICAgPHR5cGUgaXNDb250YWluZWRXb3JrPSJmYWxzZSIgaXNNdWx0aVZvbHVtZT0iZmFsc2UiIGlzUGVyaW9kaWNhbD0idHJ1ZSIgcnVsZXNldFR5cGU9IlBlcmlvZGljYWwiIHRpZkhlYWRlclR5cGU9IkJhbmRfWmVpdHNjaHJpZnQiIHRpdGxlPSJwZXJpb2RpY2FsIiBydWxlc2V0Q2hpbGRUeXBlPSJQZXJpb2RpY2FsVm9sdW1lIj4KICAgICAgICAgICAgPGxhYmVsIGxhbmd1YWdlPSJkZSI+WmVpdHNjaHJpZnQ8L2xhYmVsPgogICAgICAgICAgICA8bGFiZWwgbGFuZ3VhZ2U9ImVuIj5QZXJpb2RpY2FsPC9sYWJlbD4KICAgICAgICAgICAgPG1hcHBpbmc+QWI8L21hcHBpbmc+CiAgICAgICAgICAgIDxtYXBwaW5nPk9iPC9tYXBwaW5nPgogICAgICAgICAgICA8bWFwcGluZz5QZXJpb2RpY2FsPC9tYXBwaW5nPgogICAgICAgIDwvdHlwZT4KICAgICAgICA8dHlwZSBpc0NvbnRhaW5lZFdvcms9ImZhbHNlIiBpc011bHRpVm9sdW1lPSJ0cnVlIiBpc1BlcmlvZGljYWw9ImZhbHNlIiBydWxlc2V0VHlwZT0iTXVsdGlWb2x1bWVXb3JrIiB0aWZIZWFkZXJUeXBlPSJCYW5kX011bHRpdm9sdW1lV29yayIgdGl0bGU9Im11bHRpdm9sdW1lIiBydWxlc2V0Q2hpbGRUeXBlPSJWb2x1bWUiPgogICAgICAgICAgICA8bGFiZWwgbGFuZ3VhZ2U9ImRlIj5NZWhyYuRuZGlnZXMgV2VyazwvbGFiZWw+CiAgICAgICAgICAgIDxsYWJlbCBsYW5ndWFnZT0iZW4iPk11bHRpdm9sdW1lIHdvcms8L2xhYmVsPgogICAgICAgICAgICA8bWFwcGluZz5PZjwvbWFwcGluZz4KICAgICAgICAgICAgPG1hcHBpbmc+QWY8L21hcHBpbmc+CiAgICAgICAgICAgIDxtYXBwaW5nPk9GPC9tYXBwaW5nPgogICAgICAgICAgICA8bWFwcGluZz5BRjwvbWFwcGluZz4KICAgICAgICAgICAgPG1hcHBpbmc+TXVsdGlWb2x1bWVXb3JrPC9tYXBwaW5nPgogICAgICAgIDwvdHlwZT4KICAgIDwvZG9jdHlwZXM+CiAgICA8Y2F0YWxvZ3VlIHRpdGxlPSJLMTBQbHVzIj4KICAgICAgICA8Y29uZmlnIGFkZHJlc3M9Imt4cC5rMTBwbHVzLmRlIiBkYXRhYmFzZT0iMi4xIiBkZXNjcmlwdGlvbj0iSzEwcGx1cyIgaWt0bGlzdD0iSUtUTElTVC1HQlYueG1sIiBwb3J0PSI4MCIgdWNuZj0iVUNORj1ORkMmYW1wO1hQTk9GRj0xIiAvPgogICAgPC9jYXRhbG9ndWU+CiAgICA8Y2F0YWxvZ3VlIHRpdGxlPSJMaWJyYXJ5IG9mIENvbmdyZXNzIj4KICAgICAgICA8Y29uZmlnIGFkZHJlc3M9Imh0dHA6Ly9vcGFjLmludHJhbmRhLmNvbS9zcnUvREI9MSIgZGF0YWJhc2U9IjEiIHVjbmY9IlhQTk9GRj0xIiBkZXNjcmlwdGlvbj0iTGlicmFyeSBvZiBDb25ncmVzcyBTUlUgKFZveWFnZXIpIiBpa3RsaXN0PSJJS1RMSVNULnhtbCIgcG9ydD0iODAiIG9wYWNUeXBlPSJHQlYtTUFSQyIvPgogICAgICAgIDxzZWFyY2hGaWVsZHM+CiAgICAgICAgICAgIDxzZWFyY2hGaWVsZCBsYWJlbD0iTENDTiIgdmFsdWU9IjEyIiAvPgogICAgICAgICAgICA8c2VhcmNoRmllbGQgbGFiZWw9IklTQk4iIHZhbHVlPSI3IiAvPgogICAgICAgICAgICA8c2VhcmNoRmllbGQgbGFiZWw9IklTU04iIHZhbHVlPSI4IiAvPgogICAgICAgIDwvc2VhcmNoRmllbGRzPgogICAgPC9jYXRhbG9ndWU+Cjwvb3BhY0NhdGFsb2d1ZXM+CjxFT0YgLz4=";
+        log.error("Base64 (server):     " + base64);
+        log.error("Base64 (submitted):  " + content);
+        log.error("equal?               " + content.equals(base64));
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] decoded2 = decoder.decode(base64);
+        log.error("Decoded (server):    " + new String(decoded2));
+        byte[] decoded = decoder.decode(content);
+        log.error("Decoded (submitted): " + new String(decoded));
+        this.currentConfigFileFileContent = new String(decoded, Charset.forName("UTF-8"));
+    }
+
+    public String getCurrentConfigFileFileContentBase64() {
+        return "Hello World!";
     }
 
     public List<ConfigFile> getConfigFiles() {
@@ -179,26 +199,6 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         fileContent = fileContent.replace("\r\n", "\n");
         fileContent = fileContent.replace("\r", "\n");
         String editorContent = this.currentConfigFileFileContent;
-        log.error("file:\n" + fileContent);
-        log.error("editor:\n" + editorContent);
-        /*
-        byte[] fileBytes = fileContent.getBytes();
-        byte[] editorBytes = editorContent.getBytes();
-        int index = 0;
-        while (index < 200 && index < fileBytes.length || index < editorBytes.length) {
-            if (index < fileBytes.length) {
-                log.error("file:   " + fileBytes[index] + " " + (char)(fileBytes[index]));
-            } else {
-                log.error("file:   " + 0);
-            }
-            if (index < editorBytes.length) {
-                log.error("editor: " + editorBytes[index] + " " + (char)(editorBytes[index]));
-            } else {
-                log.error("editor: " + 0);
-            }
-            index++;
-        }
-        */
         return !fileContent.equals(editorContent);
     }
 

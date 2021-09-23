@@ -24,8 +24,9 @@ function initConfigFileEditor() {
 	setHeightOfTextEditor();
 }
 function loadEditorContent() {
-	var configFileTextArea = document.getElementById("configFileEditor");
-	configFileTextArea.innerHTML = configFileEditor.getValue();
+	var configFileTextAreaBase64 = document.getElementById("configFileEditorForm:configFileEditorBase64");
+	configFileTextAreaBase64.value = window.btoa(configFileEditor.getValue());
+	alert("value: " + configFileTextAreaBase64.value);
 }
 function loadEditorContentAndInit() {
 	loadEditorContent();
