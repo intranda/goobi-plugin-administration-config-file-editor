@@ -53,7 +53,7 @@
 					<div id="currentConfigFileType" style="position: absolute; visibility: hidden">
 						#{AdministrationForm.administrationPlugin.currentConfigFileType}
 					</div>
-					<div class="col-sm-4">
+					<div class="col-lg-4">
 						<div class="box box-color box-bordered">
 							<div class="box-title">
 								<h3>
@@ -78,7 +78,7 @@
 										<f:facet name="header">
 											<h:outputText value="#{msgs.zuletztBearbeitet}" />
 										</f:facet>
-										<h:outputText value="#{item.lastModified}" />
+										<h:outputText value="#{AdministrationForm.administrationPlugin.getLastModifiedDateOfConfigurationFile(item)}" />
 									</h:column>
 									<h:column>
 										<f:facet name="header">
@@ -130,7 +130,7 @@
 						</div>
 						-->
 					</div>
-					<div class="col-sm-8">
+					<div class="col-lg-8">
 						<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.currentConfigFile != null}">
 							<div class="box box-color box-bordered orange">
 								<div class="box-title">

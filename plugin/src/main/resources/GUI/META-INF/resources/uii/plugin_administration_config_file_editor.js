@@ -1,4 +1,5 @@
 var configFileEditor;
+
 function initConfigFileEditor() {
 	var configFileTextArea = document.getElementById("configFileEditor");
 	let type = "xml";
@@ -23,36 +24,28 @@ function initConfigFileEditor() {
 	});
 	setHeightOfTextEditor();
 }
+
 function loadEditorContent() {
 	var configFileTextAreaBase64 = document.getElementById("configFileEditorForm:configFileEditorBase64");
 	let string = configFileEditor.getValue();
 	console.log("Load: " + string);
-	let index = 0;
-	while (index < string.length) {
-		let character = string.charAt(index);
-		if (character > 127) {
-			alert(character);
-		}
-		index++;
-	}
-	configFileTextAreaBase64.value = base64EncodeUnicode(configFileEditor.getValue());
+	configFileTextAreaBase64.value = base64EncodeUnicode(string);
 }
 
 function base64EncodeUnicode(str) {
-  // Firstly, escape the string using encodeURIComponent to get the UTF-8 encoding of the characters, 
-  // Secondly, we convert the percent encodings into raw bytes, and add it to btoa() function.
-  utf8Bytes = encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
-    return String.fromCharCode('0x' + p1);
-  });
-
-  return btoa(utf8Bytes);
+	// Firstly, escape the string using encodeURIComponent to get the UTF-8 encoding of the characters, 
+	// Secondly, we convert the percent encodings into raw bytes, and add it to btoa() function.
+	utf8Bytes = encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+		return String.fromCharCode('0x' + p1);
+	});
+	return btoa(utf8Bytes);
 }
-
 
 function loadEditorContentAndInit() {
 	loadEditorContent();
 	initConfigFileEditor();
 }
+
 function setHeightOfTextEditor() {
 	var documentHeight = document.body.clientHeight;
 	var offset = $("#boxUntilBottom").offset();
