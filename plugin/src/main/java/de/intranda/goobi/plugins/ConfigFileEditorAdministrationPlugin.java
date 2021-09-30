@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.goobi.beans.Ruleset;
@@ -25,6 +26,8 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 @Log4j2
 @PluginImplementation
 public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlugin {
+
+    public static final String MESSAGE_KEY_PREFIX = "plugin_administration_config_file_editor";
 
     @Getter
     private String title = "intranda_administration_config_file_editor";
@@ -62,6 +65,16 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
 
     @Getter
     private String currentConfigFileType;
+
+    private String explanationTitle;
+
+    /**
+     * The help text for the gray box at the left side.
+     * This box contains information about the currently selected configuration file.
+     */
+    @Getter
+    @Setter
+    private String inlineHelpText = "";
 
     /**
      * Constructor
@@ -216,12 +229,33 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             this.currentConfigFile = this.configFiles.get(index);
             this.currentConfigFileFileContent = ConfigFileUtils.readFile(this.getCurrentConfigFileFileName());
             this.currentConfigFileType = this.currentConfigFile.getType().toString();
+            this.inlineHelpText = this.findHelpTextForFile();
         } else {
             // Close the file
             this.currentConfigFileIndex = -1;
             this.currentConfigFile = null;
             this.currentConfigFileFileContent = null;
+            this.inlineHelpText = "";
         }
     }
 
+    public String findHelpTextForFile() {
+        String fileName = this.currentConfigFile.getFileName();
+        String key = ConfigFileEditorAdministrationPlugin.MESSAGE_KEY_PREFIX + "_help_" + fileName;
+        String translation = Helper.getString(Helper.getSessionLocale(), key);
+        //String translation = Helper.getTranslation(key);
+        // Do not render the box if there is no description in the messages
+        if (translation.equals(key)) {
+            return "";
+        } else {
+            return translation;
+        }
+    }
+
+    public String getExplanationTitle() {
+        String key = ConfigFileEditorAdministrationPlugin.MESSAGE_KEY_PREFIX + "_explanation_for";
+        String translation = Helper.getTranslation(key);
+        String fileName = this.currentConfigFile.getFileName();
+        return translation + " " + fileName;
+    }
 }

@@ -58,7 +58,7 @@
 							<div class="box-title">
 								<h3>
 									<i class="fa fa-files-o"></i>
-									<h:outputText value="#{msgs.configFileSelection}" />
+									<h:outputText value="#{msgs.plugin_administration_config_file_editor_config_file_selection}" />
 								</h3>
 							</div>
 							<div class="box-content nopadding">
@@ -70,7 +70,7 @@
 									value="#{AdministrationForm.administrationPlugin.configFiles}">
 									<h:column>
 										<f:facet name="header">
-											<h:outputText value="#{msgs.configFileTitle}" />
+											<h:outputText value="#{msgs.plugin_administration_config_file_editor_file_name}" />
 										</f:facet>
 										<h:outputText value="#{item.fileName}"/>
 									</h:column>
@@ -89,7 +89,7 @@
 											<button
 												jsf:id="edit"
 												class="btn margin-sides-5 #{AdministrationForm.administrationPlugin.isActiveConfigFile(item) ? 'btn-primary' : ''}"
-												title="#{msgs.configFileBearbeiten}"
+												title="#{msgs.plugin_administration_config_file_editor_edit_file}"
 												jsf:rel="tooltip"
 												jsf:action="#{AdministrationForm.administrationPlugin.editConfigFile(item)}">
 												<i class="fa fa-pencil"></i>
@@ -103,7 +103,7 @@
 												type="button"
 												jsf:onclick="loadEditorContent()"
 												jsf:action="#{AdministrationForm.administrationPlugin.editConfigFile(item)}"
-												title="#{msgs.configFileBearbeiten}">
+												title="#{msgs.plugin_administration_config_file_editor_edit_file}">
 												<i class="fa fa-pencil"></i>
 												<f:ajax render="@form" execute="@form" />
 											</button>
@@ -112,23 +112,24 @@
 								</h:dataTable>
 							</div>
 						</div>
-						<!--
-						<div class="box box-color box-bordered lightgrey">
-							<div class="box-title">
-								<h3>
-									<i class="fa fa-bar-chart"></i>
-									<h:outputText
-										value="#{msgs.validationResult}" />
-								</h3>
+						<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.inlineHelpText != ''}">
+							<div class="box box-color box-bordered lightgrey">
+								<div class="box-title">
+									<h3>
+										<i class="fa fa-bar-chart"></i>
+										<h:outputText
+											value="#{AdministrationForm.administrationPlugin.explanationTitle}" />
+									</h3>
+								</div>
+								<div class="box-content">
+									<h:panelGroup id="actionform" styleClass="col-sm-12">
+										<div class="row">
+											<h:outputText escape="false" value="#{AdministrationForm.administrationPlugin.inlineHelpText}" />
+										</div>
+									</h:panelGroup>
+								</div>
 							</div>
-							<div class="box-content">
-								<h:panelGroup id="actionform" styleClass="col-sm-12">
-									<div class="row">
-									</div>
-								</h:panelGroup>
-							</div>
-						</div>
-						-->
+						</h:panelGroup>
 					</div>
 					<div class="col-lg-8">
 						<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.currentConfigFile != null}">
@@ -224,11 +225,11 @@
 							<div class="modal-content">
 								<div class="modal-header">
 									<h4 class="modal-title" id="myDialogLabel">
-										<h:outputText value="#{msgs.unsaved_changes}" />
+										<h:outputText value="#{msgs.plugin_administration_config_file_editor_unsaved_changes}" />
 									</h4>
 								</div>
 								<div class="modal-body">
-									<p>#{msgs.save_unsaved_changes}</p>
+									<p>#{msgs.plugin_administration_config_file_editor_save_unsaved_changes}</p>
 								</div>
 								<div class="modal-footer">
 									<div class="btn-group">
