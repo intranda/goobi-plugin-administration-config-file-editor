@@ -112,7 +112,7 @@
 								</h:dataTable>
 							</div>
 						</div>
-						<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.inlineHelpText != ''}">
+						<h:panelGroup rendered="#{msgs['plugin_administration_config_file_editor_help_'.concat(AdministrationForm.administrationPlugin.currentConfigFile.getFileName())] ne 'plugin_administration_config_file_editor_help_'.concat(AdministrationForm.administrationPlugin.currentConfigFile.getFileName())}">
 							<div class="box box-color box-bordered lightgrey">
 								<div class="box-title">
 									<h3>
@@ -123,10 +123,11 @@
 								</div>
 								<div class="box-content">
 									<h:panelGroup id="actionform" styleClass="col-sm-12">
-										<div class="row">
-											<h:outputText escape="false" value="#{AdministrationForm.administrationPlugin.inlineHelpText}" />
-										</div>
-									</h:panelGroup>
+									    <div class="row">
+                                            <h:outputText escape="false" 
+                                                value="#{msgs['plugin_administration_config_file_editor_help_'.concat(AdministrationForm.administrationPlugin.currentConfigFile.getFileName())]}" />
+                                        </div>
+                                    </h:panelGroup>
 								</div>
 							</div>
 						</h:panelGroup>

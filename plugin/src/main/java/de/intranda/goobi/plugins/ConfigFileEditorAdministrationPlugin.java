@@ -69,14 +69,6 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     private String explanationTitle;
 
     /**
-     * The help text for the gray box at the left side.
-     * This box contains information about the currently selected configuration file.
-     */
-    @Getter
-    @Setter
-    private String inlineHelpText = "";
-
-    /**
      * Constructor
      */
     public ConfigFileEditorAdministrationPlugin() {
@@ -229,26 +221,11 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             this.currentConfigFile = this.configFiles.get(index);
             this.currentConfigFileFileContent = ConfigFileUtils.readFile(this.getCurrentConfigFileFileName());
             this.currentConfigFileType = this.currentConfigFile.getType().toString();
-            this.inlineHelpText = this.findHelpTextForFile();
         } else {
             // Close the file
             this.currentConfigFileIndex = -1;
             this.currentConfigFile = null;
             this.currentConfigFileFileContent = null;
-            this.inlineHelpText = "";
-        }
-    }
-
-    public String findHelpTextForFile() {
-        String fileName = this.currentConfigFile.getFileName();
-        String key = ConfigFileEditorAdministrationPlugin.MESSAGE_KEY_PREFIX + "_help_" + fileName;
-        String translation = Helper.getString(Helper.getSessionLocale(), key);
-        //String translation = Helper.getTranslation(key);
-        // Do not render the box if there is no description in the messages
-        if (translation.equals(key)) {
-            return "";
-        } else {
-            return translation;
         }
     }
 
