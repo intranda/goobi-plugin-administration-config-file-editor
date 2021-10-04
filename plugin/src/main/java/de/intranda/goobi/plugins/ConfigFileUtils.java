@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.configuration.XMLConfiguration;
@@ -72,35 +74,67 @@ public abstract class ConfigFileUtils {
     public static void createBackupFile(String fileName) {
         StorageProviderInterface storage = StorageProvider.getInstance();
         try {
-            // Delete oldest file when existing...
-            String lastFileName = ConfigFileUtils.getBackupFileName(fileName, ConfigFileUtils.numberOfBackupFiles);
-            Path lastFile = Paths.get(lastFileName);
-            if (storage.isFileExists(lastFile)) {
-                storage.deleteFile(lastFile);
+            // Delete oldest file if it exists...
+            String lastFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, ConfigFileUtils.numberOfBackupFiles);
+            lastFileName = ConfigFileUtils.backupDirectory + ConfigFileUtils.findBackupFileNameByEnding(lastFileName);
+            if (lastFileName != null) {
+                Path lastFile = Paths.get(lastFileName);
+                if (storage.isFileExists(lastFile)) {
+                    storage.deleteFile(lastFile);
+                }
             }
             // Rename all other backup files...
             // This is the number of the file that should be renamed to the file with the higher number
             int backupId = ConfigFileUtils.numberOfBackupFiles - 1;
             while (backupId > 0) {
-                String newerFileName = ConfigFileUtils.getBackupFileName(fileName, backupId);
-                String olderFileName = ConfigFileUtils.getBackupFileName(fileName, backupId + 1);
-                Path newerFile = Paths.get(newerFileName);
-                if (storage.isFileExists(newerFile)) {
-                    storage.renameTo(newerFile, olderFileName);
+                String newerFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId);
+                newerFileName = ConfigFileUtils.findBackupFileNameByEnding(newerFileName);
+                String newerFileNameWithPath = ConfigFileUtils.backupDirectory + newerFileName;
+                String olderFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId + 1);
+                if (newerFileName != null) {
+                    String timestamp = ConfigFileUtils.extractTimestampFromFileName(newerFileName);
+                    olderFileName = timestamp + "_" + olderFileName;
+                    Path newerFile = Paths.get(newerFileNameWithPath);
+                    if (storage.isFileExists(newerFile)) {
+                        storage.renameTo(newerFile, olderFileName);
+                    }
                 }
                 backupId--;
             }
             // Create backup file...
             String content = ConfigFileUtils.readFile(ConfigFileUtils.configFileDirectory + fileName);
-            ConfigFileUtils.writeFile(ConfigFileUtils.getBackupFileName(fileName, 1), content);
+            ConfigFileUtils.writeFile(ConfigFileUtils.createBackupFileNameWithTimestamp(fileName, 1), content);
             log.info("Wrote backup file: " + fileName);
         } catch (IOException ioException) {
             log.error(ioException);
         }
     }
 
-    private static String getBackupFileName(String fileName, int backupId) {
-        return ConfigFileUtils.backupDirectory + fileName + "." + backupId;
+    private static String extractTimestampFromFileName(String fileName) {
+        // The date format must be "yyyy_MM_dd_HH_mm_ss"
+        return fileName.substring(0, 19);
+    }
+
+    private static String createBackupFileNameWithoutTimestamp(String fileName, int backupId) {
+        return fileName + "." + backupId;
+    }
+
+    private static String createBackupFileNameWithTimestamp(String fileName, int backupId) {
+        String name = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        String timestamp = formatter.format(new Date());
+        return ConfigFileUtils.backupDirectory + timestamp + "_" + name;
+    }
+
+    private static String findBackupFileNameByEnding(String ending) {
+        StorageProviderInterface storage = StorageProvider.getInstance();
+        List<String> fileNames = storage.list(ConfigFileUtils.backupDirectory);
+        for (int index = 0; index < fileNames.size(); index++) {
+            if (fileNames.get(index).endsWith(ending)) {
+                return fileNames.get(index);
+            }
+        }
+        return null;
     }
 
     public static String readFile(String fileName) {
