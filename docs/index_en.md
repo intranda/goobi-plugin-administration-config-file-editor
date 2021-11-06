@@ -95,6 +95,29 @@ Parameter           |  Description
 `configFileBackupDirectory`   | This sets the path for the backup files where the backups of the configuration files are to be saved after editing.
 `numberOfBackupFiles`         | This integer value specifies how many backup files remain stored per configuration file before they are overwritten by new backups.
 
+If help texts for individual configuration files are to be displayed, these must be stored within the messages files. For this purpose, an adjustment is made in these files, for example:
+
+```
+/opt/digiverso/goobi/config/messages_de.properties
+/opt/digiverso/goobi/config/messages_en.properties
+```
+
+For each configuration file, a value like the following can be entered there in the respective file.
+
+German version within the file `messages_de.properties`:
+
+```properties
+plugin_administration_config_file_editor_help_goobi_projects.xml = Dies ist ein Hilfetext für die Konfiguration der Anlegemaske. <br/>Hier kann eine <i>Beschreibung</i>, die <b>formatiert</b> ist.<br/><br/><pre>Und auch Quellcode kann hier stehen</pre>
+```
+
+English version within the file `messages_en.properties`:
+
+```properties
+plugin_administration_config_file_editor_help_goobi_projects.xml=This is a help text for the creation mask. <br/>You can add a <i>Description</i> here, which is <b>formatted</b>.<br/><br/><pre>And you can put source code here as well</pre>
+```
+
+Note that the prefix `plugin_administration_config_file_editor_help_` is added before the name of the configuration file.
+
 
 Setting up required rights
 ---------------------------------------------------------------------------
