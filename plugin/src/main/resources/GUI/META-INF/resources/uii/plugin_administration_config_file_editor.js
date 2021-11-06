@@ -20,9 +20,9 @@ function initConfigFileEditor() {
 		});
 	}
 	window.addEventListener('resize', function() {
-		setHeightOfTextEditor();
+		// setHeightOfTextEditor();
 	});
-	setHeightOfTextEditor();
+	//setHeightOfTextEditor();
 }
 
 function loadEditorContent() {
