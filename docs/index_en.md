@@ -33,7 +33,7 @@ After installation, the plugin can be found in its own entry in the `Administrat
 
 After opening, all Goobi configuration files are listed on the left-hand side. These can be opened by clicking on the respective icon in order to edit them.
 
-![Open plugin without loaded file](intranda_administration_config_file_editor4_en.png)
+![Open plugin with loaded file](intranda_administration_config_file_editor4_en.png)
 
 If you open a file, a text editor appears on the right-hand side in which the file can be edited. If you edit and save a file, a backup is automatically created in the defined backup directory. 
 
@@ -87,7 +87,7 @@ The plugin is configured via the configuration file `plugin_intranda_administrat
 </config_plugin>
 ```
 
-The block `<config>` can occur repeatedly for different projects or workflow steps in order to be able to perform different actions within different workflows. The other parameters within this configuration file have the following meanings:
+The parameters within this configuration file have the following meanings:
 
 Parameter           |  Description
 ------------------- | ----------------------------------------------------- 
