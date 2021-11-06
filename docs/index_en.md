@@ -24,7 +24,7 @@ License             | GPL 2.0 or newer
 Documentation date  | 06.11.2021
 
 
-Arbeitsweise des Plugins
+How the plugin works
 ---------------------------------------------------------------------------
 
 After installation, the plugin can be found in its own entry in the `Administration` menu, from where it can be opened.
