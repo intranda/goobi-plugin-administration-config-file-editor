@@ -113,7 +113,7 @@ plugin_administration_config_file_editor_help_goobi_projects.xml = Dies ist ein 
 Englische Fassung innerhalb der Datei `messages_en.properties`:
 
 ```properties
-plugin_administration_config_file_editor_help_goobi_projects.xml=This is a help text for the creation mask. <br/>You can add a <i>Description</i> here, which is <b>formatted</b>.<br/><br/><pre>And you can put source code here as well</pre>
+plugin_administration_config_file_editor_help_goobi_projects.xml = This is a help text for the creation mask. <br/>You can add a <i>Description</i> here, which is <b>formatted</b>.<br/><br/><pre>And you can put source code here as well</pre>
 ```
 
 Zu beachten ist hierbei, dass jeweils der Präfix `plugin_administration_config_file_editor_help_` vor dem Namen der Konfigurationsdatei angefügt wird.
