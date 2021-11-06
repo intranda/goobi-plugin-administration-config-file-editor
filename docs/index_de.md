@@ -33,7 +33,7 @@ Nach der Installation ist das Plugin in einem eigenen Eintrag im Menü `Administ
 
 Nach dem Öffnen werden auf der linken Seite alle Konfigurationsdateien von Goobi aufgelistet. Diese kann man durch Anklicken des jeweiligen Icons öffnen, um sie zu bearbeiten.
 
-![Geöffnetes Plugin ohne geladene Datei](intranda_administration_config_file_editor4_de.png)
+![Geöffnetes Plugin mit geladener Datei](intranda_administration_config_file_editor4_de.png)
 
 Öffnet man eine Datei, erscheint auf der rechten Seite ein Texteditor, in dem die Datei bearbeitet werden kann. Bearbeitet und speichert man eine Datei, wird im definierten Backupverzeichnis automatisch ein Backup angelegt. 
 
@@ -87,7 +87,7 @@ Die Konfiguration des Plugins erfolgt über die Konfigurationsdatei `plugin_intr
 </config_plugin>
 ```
 
-Der Block `<config>` kann für verschiedene Projekte oder Arbeitsschritte wiederholt vorkommen, um innerhalb verschiedener Workflows unterschiedliche Aktionen durchführen zu können. Die weiteren Parameter innerhalb dieser Konfigurationsdatei haben folgende Bedeutungen:
+Die Parameter innerhalb dieser Konfigurationsdatei haben folgende Bedeutungen:
 
 Parameter           |  Erläuterung
 ------------------- | ----------------------------------------------------- 
