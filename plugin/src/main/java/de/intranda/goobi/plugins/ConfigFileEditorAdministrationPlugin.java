@@ -1,5 +1,6 @@
 package de.intranda.goobi.plugins;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
@@ -7,13 +8,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Locale;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.configuration.XMLConfiguration;
-import org.goobi.beans.Ruleset;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
+import de.intranda.goobi.plugins.xml.ReportErrorsErrorHandler;
+import de.intranda.goobi.plugins.xml.XMLError;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
@@ -175,7 +182,22 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         return -1;
     }
 
-    public void save() {
+    public void save() throws ParserConfigurationException, SAXException, IOException {
+        if (this.getCurrentConfigFileFileName().endsWith(".xml")) {
+            List<XMLError> errors = checkXMLWellformed(this.currentConfigFileFileContent);
+            if (!errors.isEmpty()) {
+                for (XMLError error : errors) {
+                    Helper.setFehlerMeldung("configFileEditor",
+                            String.format("%s: Line %d column %d: %s", error.getSeverity(), error.getLine(), error.getColumn(),
+                                    error.getMessage()),
+                            "");
+                }
+                if (errors.stream().anyMatch(e -> e.getSeverity().equals("ERROR") || e.getSeverity().equals("FATAL"))) {
+                    Helper.setFehlerMeldung("configFileEditor", "File was not saved, because the XML is not well-formed", "");
+                    return;
+                }
+            }
+        }
         // Only create a backup if the new file content differs from the existing file content
         if (this.hasFileContentChanged()) {
             ConfigFileUtils.createBackupFile(this.currentConfigFile.getFileName());
@@ -195,7 +217,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         this.configFileContentChanged = false;
     }
 
-    public void saveAndChangeConfigFile() {
+    public void saveAndChangeConfigFile() throws ParserConfigurationException, SAXException, IOException {
         this.save();
     }
 
@@ -234,5 +256,24 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         String translation = Helper.getTranslation(key);
         String fileName = this.currentConfigFile.getFileName();
         return translation + " " + fileName;
+    }
+
+    private List<XMLError> checkXMLWellformed(String xml) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setValidating(false);
+        factory.setNamespaceAware(true);
+
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        ReportErrorsErrorHandler eh = new ReportErrorsErrorHandler();
+        builder.setErrorHandler(eh);
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+        try {
+            builder.parse(bais);
+        } catch (SAXParseException e) {
+            //ignore this, because we collect the errors in the errorhandler and give them to the user.
+        }
+
+        return eh.getErrors();
     }
 }
