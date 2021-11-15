@@ -221,8 +221,6 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         try (ByteArrayInputStream bais = new ByteArrayInputStream(this.currentConfigFileFileContent.getBytes("UTF-8"))) {
             apacheProp.load(bais);
         } catch (ConfigurationException | ConfigurationRuntimeException e) {
-            // TODO Auto-generated catch block
-            log.error(e);
             Helper.setFehlerMeldung("configFileEditor", e.getMessage(), "");
             Helper.setFehlerMeldung("configFileEditor", "File was not saved, because the properties format is not well-formed", "");
             return false;
