@@ -188,7 +188,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             if (!errors.isEmpty()) {
                 for (XMLError error : errors) {
                     Helper.setFehlerMeldung("configFileEditor",
-                            String.format("%s: Line %d column %d: %s", error.getSeverity(), error.getLine(), error.getColumn(),
+                            String.format("Line %d column %d: %s", error.getLine(), error.getColumn(),
                                     error.getMessage()),
                             "");
                 }
