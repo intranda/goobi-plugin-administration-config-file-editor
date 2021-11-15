@@ -75,6 +75,9 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
 
     private String explanationTitle;
 
+    @Getter
+    private boolean validationError;
+
     /**
      * Constructor
      */
@@ -163,6 +166,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         if (this.hasFileContentChanged()) {
             this.configFileContentChanged = true;
             this.configFileIndexAfterSaveOrIgnore = index;
+            this.validationError = false;
             return;
         }
         this.setConfigFile(index);
@@ -188,14 +192,18 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             if (!errors.isEmpty()) {
                 for (XMLError error : errors) {
                     Helper.setFehlerMeldung("configFileEditor",
-                            String.format("Line %d column %d: %s", error.getLine(), error.getColumn(),
-                                    error.getMessage()),
-                            "");
+                            String.format("Line %d column %d: %s", error.getLine(), error.getColumn(), error.getMessage()), "");
                 }
                 if (errors.stream().anyMatch(e -> e.getSeverity().equals("ERROR") || e.getSeverity().equals("FATAL"))) {
+                    this.validationError = true;
+                    //this needs to be done, so the modal won't appear repeatedly and ask the user if he wants to save.
+                    this.configFileIndexAfterSaveOrIgnore = -1;
+                    this.configFileContentChanged = false;
                     Helper.setFehlerMeldung("configFileEditor", "File was not saved, because the XML is not well-formed", "");
                     return;
                 }
+            } else {
+                this.validationError = false;
             }
         }
         // Only create a backup if the new file content differs from the existing file content
@@ -249,6 +257,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             this.currentConfigFile = null;
             this.currentConfigFileFileContent = null;
         }
+        this.validationError = false;
     }
 
     public String getExplanationTitle() {
