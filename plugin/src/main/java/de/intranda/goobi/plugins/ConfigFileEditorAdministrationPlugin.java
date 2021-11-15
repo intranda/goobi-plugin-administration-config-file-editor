@@ -2,6 +2,7 @@ package de.intranda.goobi.plugins;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -13,6 +14,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
@@ -187,24 +191,11 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     }
 
     public void save() throws ParserConfigurationException, SAXException, IOException {
-        if (this.getCurrentConfigFileFileName().endsWith(".xml")) {
-            List<XMLError> errors = checkXMLWellformed(this.currentConfigFileFileContent);
-            if (!errors.isEmpty()) {
-                for (XMLError error : errors) {
-                    Helper.setFehlerMeldung("configFileEditor",
-                            String.format("Line %d column %d: %s", error.getLine(), error.getColumn(), error.getMessage()), "");
-                }
-                if (errors.stream().anyMatch(e -> e.getSeverity().equals("ERROR") || e.getSeverity().equals("FATAL"))) {
-                    this.validationError = true;
-                    //this needs to be done, so the modal won't appear repeatedly and ask the user if he wants to save.
-                    this.configFileIndexAfterSaveOrIgnore = -1;
-                    this.configFileContentChanged = false;
-                    Helper.setFehlerMeldung("configFileEditor", "File was not saved, because the XML is not well-formed", "");
-                    return;
-                }
-            } else {
-                this.validationError = false;
-            }
+        if (this.getCurrentConfigFileFileName().endsWith(".xml") && !checkXML()) {
+            return;
+        }
+        if (this.getCurrentConfigFileFileName().endsWith(".properties") && !checkProperties()) {
+            return;
         }
         // Only create a backup if the new file content differs from the existing file content
         if (this.hasFileContentChanged()) {
@@ -223,6 +214,42 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             this.configFileIndexAfterSaveOrIgnore = -1;
         }
         this.configFileContentChanged = false;
+    }
+
+    private boolean checkProperties() throws UnsupportedEncodingException, IOException {
+        PropertiesConfiguration apacheProp = new PropertiesConfiguration();
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(this.currentConfigFileFileContent.getBytes("UTF-8"))) {
+            apacheProp.load(bais);
+        } catch (ConfigurationException | ConfigurationRuntimeException e) {
+            // TODO Auto-generated catch block
+            log.error(e);
+            Helper.setFehlerMeldung("configFileEditor", e.getMessage(), "");
+            Helper.setFehlerMeldung("configFileEditor", "File was not saved, because the properties format is not well-formed", "");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkXML() throws ParserConfigurationException, SAXException, IOException {
+        boolean ok = true;
+        List<XMLError> errors = checkXMLWellformed(this.currentConfigFileFileContent);
+        if (!errors.isEmpty()) {
+            for (XMLError error : errors) {
+                Helper.setFehlerMeldung("configFileEditor",
+                        String.format("Line %d column %d: %s", error.getLine(), error.getColumn(), error.getMessage()), "");
+            }
+            if (errors.stream().anyMatch(e -> e.getSeverity().equals("ERROR") || e.getSeverity().equals("FATAL"))) {
+                this.validationError = true;
+                //this needs to be done, so the modal won't appear repeatedly and ask the user if he wants to save.
+                this.configFileIndexAfterSaveOrIgnore = -1;
+                this.configFileContentChanged = false;
+                Helper.setFehlerMeldung("configFileEditor", "File was not saved, because the XML is not well-formed", "");
+                ok = false;
+            }
+        } else {
+            this.validationError = false;
+        }
+        return ok;
     }
 
     public void saveAndChangeConfigFile() throws ParserConfigurationException, SAXException, IOException {
@@ -276,8 +303,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         ReportErrorsErrorHandler eh = new ReportErrorsErrorHandler();
         builder.setErrorHandler(eh);
 
-        ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes("UTF-8"));
-        try {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes("UTF-8"))) {
             builder.parse(bais);
         } catch (SAXParseException e) {
             //ignore this, because we collect the errors in the errorhandler and give them to the user.
