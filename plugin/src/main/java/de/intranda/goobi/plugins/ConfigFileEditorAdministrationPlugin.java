@@ -199,6 +199,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         }
         // Only create a backup if the new file content differs from the existing file content
         if (this.hasFileContentChanged()) {
+            //NEW: ConfigFileUtils.creataBackupFile(this.currentConfigFile);
             ConfigFileUtils.createBackupFile(this.currentConfigFile.getFileName());
         }
         ConfigFileUtils.writeFile(this.getCurrentConfigFileFileName(), this.currentConfigFileFileContent);

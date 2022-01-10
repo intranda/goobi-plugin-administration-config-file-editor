@@ -1,9 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <config_plugin>
+    <!--
+    List of directories whose files are displayed in the interface.
 
-	<configFileDirectory>/opt/digiverso/goobi/config/</configFileDirectory>
-	<!-- By editing a config file in the browser GUI, a backup file will be stored in the backup directory -->
-	<configFileBackupDirectory>/opt/digiverso/goobi/config/backup/</configFileBackupDirectory>
-	<!-- backup files will be stored as config.xml.1, config.xml.2, ..., config.xml.n -->
-	<numberOfBackupFiles>8</numberOfBackupFiles>
+    Backups are automatically created in a subfolder called "backup/".
+    You can override this with the optional attribute backupFolder="".
+    Important: The directory must be absolute, the backupFolder parameter must be relative.
+
+    By default 8 backup files are kept, older files will be deleted.
+    You can override this with the optional attribute backupFiles="".
+    -->
+
+    <configFileDirectories>
+        <directory backupFiles="16">/opt/digiverso/goobi/config/</directory>
+        <directory backupFolder="wizzardBackup/" backupFiles="4">/opt/digiverso/layoutwizzard/</directory>
+        <directory backupFolder="itmPluginsBackup/" backupFiles="4">/opt/digiverso/itm/plugins/config/</directory>
+        <directory backupFolder="itmBackup/">/opt/digiverso/itm/config/</directory>
+        <!--
+        Example:
+        <directory backupFolder="exampleBackup/" backupFiles="12">/opt/digiverso/example/config/</directory>
+        -->
+    </configFileDirectories>
+
+    <!-- Old structure: -->
+    <configFileDirectory>/opt/digiverso/goobi/config/</configFileDirectory>
+    <!-- By editing a config file in the browser GUI, a backup file will be stored in the backup directory -->
+    <configFileBackupDirectory>/opt/digiverso/goobi/config/backup/</configFileBackupDirectory>
+    <!-- backup files will be stored as config.xml.1, config.xml.2, ..., config.xml.n -->
+    <numberOfBackupFiles>8</numberOfBackupFiles>
 
 </config_plugin>

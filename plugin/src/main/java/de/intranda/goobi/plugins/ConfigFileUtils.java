@@ -16,12 +16,13 @@ import org.apache.commons.io.FileUtils;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
-import lombok.extern.log4j.Log4j2;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public abstract class ConfigFileUtils {
 
+    /**/
     @Getter
     private static String configFileDirectory;
 
@@ -29,19 +30,23 @@ public abstract class ConfigFileUtils {
     private static String backupDirectory;
 
     private static int numberOfBackupFiles;
+    /**/
 
     private static Charset standardCharset;
 
+    private static XMLConfiguration xmlConfiguration;
+
     public static void init(XMLConfiguration configuration) {
+        ConfigFileUtils.xmlConfiguration = configuration;
         ConfigFileUtils.configFileDirectory = configuration.getString("configFileDirectory", "/opt/digiverso/goobi/config/");
         ConfigFileUtils.backupDirectory = configuration.getString("configFileBackupDirectory", "/opt/digiverso/goobi/config/backup/");
         ConfigFileUtils.numberOfBackupFiles = configuration.getInt("numberOfBackupFiles", 10);
         ConfigFileUtils.standardCharset = Charset.forName("UTF-8");
     }
 
-    public static List<ConfigFile> getAllConfigFiles() {
+    private static List<ConfigFile> getAllConfigFilesFromDirectory(String directory) {
         StorageProviderInterface storage = StorageProvider.getInstance();
-        List<Path> files = storage.listFiles(ConfigFileUtils.configFileDirectory);
+        List<Path> files = storage.listFiles(directory);
         List<ConfigFile> configFiles = new ArrayList<>();
         for (int index = 0; index < files.size(); index++) {
             Path file = files.get(index).toAbsolutePath();
@@ -57,19 +62,63 @@ public abstract class ConfigFileUtils {
         return configFiles;
     }
 
+    public static List<ConfigFile> getAllConfigFiles() {
+        return ConfigFileUtils.getAllConfigFiles(ConfigFileUtils.xmlConfiguration);
+        //return ConfigFileUtils.getAllConfigFilesFromDirectory(ConfigFileUtils.configFileDirectory);
+    }
+
+    public static List<ConfigFile> getAllConfigFiles(XMLConfiguration xml) {
+        List<ConfigFile> configFiles = new ArrayList<>();
+        //configuration.setExpressionEngine(new XPathExpressionEngine());
+        int index = 0;
+        ConfigDirectory directory;
+        do {
+            directory = ConfigFileUtils.tryToParseConfigDirectory(xml, index);
+            if (directory != null) {
+                configFiles.addAll(ConfigFileUtils.getAllConfigFilesFromDirectory(directory.getDirectory()));
+            }
+            index++;
+        } while (directory != null);
+        return configFiles;
+    }
+
+    private static ConfigDirectory tryToParseConfigDirectory(XMLConfiguration xml, int index) {
+        String element = "configFileDirectories.directory(" + index + ")";
+        String directory = null;
+        try {
+            directory = xml.getString(element);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return null;
+        }
+        if (!directory.endsWith("/")) {
+            directory += "/";
+        }
+        String backupDirectory = null;
+        try {
+            backupDirectory = xml.getString(element + "[@backupFolder]");
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            backupDirectory = directory + "backup/";
+        }
+        int numberOfBackups = 8;
+        try {
+            numberOfBackups = xml.getInt(element + "[@backupFiles]");
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return new ConfigDirectory(directory, backupDirectory, numberOfBackups);
+    }
+
     /**
-     * Rotates the backup files (older files get a higher number) and creates a backup file in "fileName.xml.1".
-     * The oldest file (e.g. "fileName.xml.10") will be removed
+     * Rotates the backup files (older files get a higher number) and creates a backup file in "fileName.xml.1". The oldest file (e.g.
+     * "fileName.xml.10") will be removed
      *
      * How the algorithm works (e.g. this.NUMBER_OF_BACKUP_FILES == 10):
      *
-     * delete(backup/fileName.xml.10)
-     * rename(backup/fileName.xml.9, backup/fileName.xml.10)
-     * rename(backup/fileName.xml.8, backup/fileName.xml.9)
-     *...
-     * rename(backup/fileName.xml.2, backup/fileName.xml.3)
-     * rename(backup/fileName.xml.1, backup/fileName.xml.2)
-     * copy(fileName.xml, backup/fileName.xml.1)
+     * delete(backup/fileName.xml.10) rename(backup/fileName.xml.9, backup/fileName.xml.10) rename(backup/fileName.xml.8, backup/fileName.xml.9) ...
+     * rename(backup/fileName.xml.2, backup/fileName.xml.3) rename(backup/fileName.xml.1, backup/fileName.xml.2) copy(fileName.xml,
+     * backup/fileName.xml.1)
      */
     public static void createBackupFile(String fileName) {
         StorageProviderInterface storage = StorageProvider.getInstance();

@@ -1,10 +1,15 @@
 package de.intranda.goobi.plugins;
 
 import java.nio.file.Path;
+
 import lombok.Getter;
 import lombok.Setter;
 
 public class ConfigFile {
+
+    @Getter
+    @Setter
+    private ConfigDirectory directory;
 
     @Getter
     private String fileName;
