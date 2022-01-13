@@ -9,17 +9,22 @@ public class ConfigFile {
 
     @Getter
     @Setter
-    private ConfigDirectory directory;
+    private ConfigDirectory configDirectory;
 
     @Getter
     private String fileName;
 
     @Getter
+    @Setter
     private Type type;
 
     @Getter
     @Setter
     private String lastModified;
+
+    public ConfigFile(Path path) {
+        this(path, null);
+    }
 
     public ConfigFile(Path path, Type type) {
         this.fileName = path.getFileName().toString();

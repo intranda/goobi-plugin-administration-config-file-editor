@@ -69,15 +69,8 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     @Setter
     private String currentConfigFileFileContent = null;
 
-    /**
-     * null means that no config file is selected
-     */
-    private String currentConfigFileFileContentBase64 = null;
-
     @Getter
     private String currentConfigFileType;
-
-    private String explanationTitle;
 
     @Getter
     private boolean validationError;
@@ -112,7 +105,8 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         StorageProviderInterface storageProvider = StorageProvider.getInstance();
         for (int index = 0; index < this.configFiles.size(); index++) {
             try {
-                String pathName = ConfigFileUtils.getConfigFileDirectory() + this.configFiles.get(index).getFileName();
+                ConfigFile file = this.configFiles.get(index);
+                String pathName = file.getConfigDirectory().getDirectory() + file.getFileName();
                 long lastModified = storageProvider.getLastModifiedDate(Paths.get(pathName));
                 SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                 this.configFiles.get(index).setLastModified(formatter.format(lastModified));
@@ -158,7 +152,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     }
 
     public String getCurrentConfigFileFileName() {
-        return ConfigFileUtils.getConfigFileDirectory() + this.currentConfigFile.getFileName();
+        return this.currentConfigFile.getConfigDirectory().getDirectory() + this.currentConfigFile.getFileName();
     }
 
     public boolean isActiveConfigFile(ConfigFile configFile) {
@@ -199,10 +193,10 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         }
         // Only create a backup if the new file content differs from the existing file content
         if (this.hasFileContentChanged()) {
-            //NEW: ConfigFileUtils.creataBackupFile(this.currentConfigFile);
-            ConfigFileUtils.createBackupFile(this.currentConfigFile.getFileName());
+            ConfigFileUtils.createBackupFile(this.currentConfigFile);
         }
-        ConfigFileUtils.writeFile(this.getCurrentConfigFileFileName(), this.currentConfigFileFileContent);
+        String directory = this.currentConfigFile.getConfigDirectory().getDirectory();
+        ConfigFileUtils.writeFile(directory, this.getCurrentConfigFileFileName(), this.currentConfigFileFileContent);
         // Uncomment this when the file should be closed after saving
         // this.setConfigFile(-1);
         Helper.setMeldung("configFileEditor", Helper.getTranslation("savedConfigFileSuccessfully"), "");

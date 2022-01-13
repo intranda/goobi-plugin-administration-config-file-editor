@@ -17,10 +17,15 @@ public class ConfigDirectory {
     @Setter
     private int numberOfBackups;
 
-    ConfigDirectory(String directory, String backupDirectory, int numberOfBackups) {
+    @Getter
+    @Setter
+    private String fileRegex;
+
+    ConfigDirectory(String directory, String backupDirectory, int numberOfBackups, String fileRegex) {
         this.directory = directory;
         this.backupDirectory = backupDirectory;
         this.numberOfBackups = numberOfBackups;
+        this.fileRegex = fileRegex;
     }
 
 }

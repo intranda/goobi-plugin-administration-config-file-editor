@@ -16,21 +16,10 @@ import org.apache.commons.io.FileUtils;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public abstract class ConfigFileUtils {
-
-    /**/
-    @Getter
-    private static String configFileDirectory;
-
-    @Getter
-    private static String backupDirectory;
-
-    private static int numberOfBackupFiles;
-    /**/
 
     private static Charset standardCharset;
 
@@ -38,44 +27,21 @@ public abstract class ConfigFileUtils {
 
     public static void init(XMLConfiguration configuration) {
         ConfigFileUtils.xmlConfiguration = configuration;
-        ConfigFileUtils.configFileDirectory = configuration.getString("configFileDirectory", "/opt/digiverso/goobi/config/");
-        ConfigFileUtils.backupDirectory = configuration.getString("configFileBackupDirectory", "/opt/digiverso/goobi/config/backup/");
-        ConfigFileUtils.numberOfBackupFiles = configuration.getInt("numberOfBackupFiles", 10);
         ConfigFileUtils.standardCharset = Charset.forName("UTF-8");
-    }
-
-    private static List<ConfigFile> getAllConfigFilesFromDirectory(String directory) {
-        StorageProviderInterface storage = StorageProvider.getInstance();
-        List<Path> files = storage.listFiles(directory);
-        List<ConfigFile> configFiles = new ArrayList<>();
-        for (int index = 0; index < files.size(); index++) {
-            Path file = files.get(index).toAbsolutePath();
-            if (storage.isFileExists(file)) {
-                String name = file.getFileName().toString();
-                if (name.endsWith(".xml")) {
-                    configFiles.add(new ConfigFile(file, ConfigFile.Type.XML));
-                } else if (name.endsWith(".properties")) {
-                    configFiles.add(new ConfigFile(file, ConfigFile.Type.PROPERTIES));
-                }
-            }
-        }
-        return configFiles;
     }
 
     public static List<ConfigFile> getAllConfigFiles() {
         return ConfigFileUtils.getAllConfigFiles(ConfigFileUtils.xmlConfiguration);
-        //return ConfigFileUtils.getAllConfigFilesFromDirectory(ConfigFileUtils.configFileDirectory);
     }
 
     public static List<ConfigFile> getAllConfigFiles(XMLConfiguration xml) {
         List<ConfigFile> configFiles = new ArrayList<>();
-        //configuration.setExpressionEngine(new XPathExpressionEngine());
         int index = 0;
         ConfigDirectory directory;
         do {
             directory = ConfigFileUtils.tryToParseConfigDirectory(xml, index);
             if (directory != null) {
-                configFiles.addAll(ConfigFileUtils.getAllConfigFilesFromDirectory(directory.getDirectory()));
+                configFiles.addAll(ConfigFileUtils.getAllConfigFilesFromDirectory(directory));
             }
             index++;
         } while (directory != null);
@@ -84,30 +50,89 @@ public abstract class ConfigFileUtils {
 
     private static ConfigDirectory tryToParseConfigDirectory(XMLConfiguration xml, int index) {
         String element = "configFileDirectories.directory(" + index + ")";
+
+        // Get the directory name where the configuration files are (or null)
         String directory = null;
         try {
             directory = xml.getString(element);
         } catch (Exception exception) {
             exception.printStackTrace();
+        }
+        // No directory with this index found, loop breaks to look for further directories
+        if (directory == null || directory.length() == 0) {
             return null;
         }
         if (!directory.endsWith("/")) {
             directory += "/";
         }
+
+        // Get the backup directory if it is defined in the parameter. If it is not defined, set it to "backup/"
         String backupDirectory = null;
         try {
             backupDirectory = xml.getString(element + "[@backupFolder]");
         } catch (Exception exception) {
-            exception.printStackTrace();
-            backupDirectory = directory + "backup/";
+            // No value is set, standard value should be used.
+            // exception.printStackTrace();
         }
+        // The default backup directory is the subdirectory "backup/" in the directory where the configuration files are.
+        // If the backupDirectory is an empty string (""), the configuration directory is used for the backups.
+        if (backupDirectory == null) {
+            backupDirectory = "backup/";
+        }
+        if (backupDirectory.length() > 0 && !backupDirectory.endsWith("/")) {
+            backupDirectory += "/";
+        }
+        backupDirectory = directory + backupDirectory;
+
+        // Get the number of backup files that should be rotated before old files are deleted. The default value is 8.
         int numberOfBackups = 8;
         try {
             numberOfBackups = xml.getInt(element + "[@backupFiles]");
         } catch (Exception exception) {
-            exception.printStackTrace();
+            // No value is set, standard value should be used.
+            // exception.printStackTrace();
         }
-        return new ConfigDirectory(directory, backupDirectory, numberOfBackups);
+
+        // Get the file regex parameter. If the regex is not used, it is set to null and not used in the file selection algorithm.
+        String fileRegex = null;
+        try {
+            fileRegex = xml.getString(element + "[@fileRegex]");
+        } catch (Exception exception) {
+            // No value is set, standard value should be used.
+            // exception.printStackTrace();
+        }
+
+        return new ConfigDirectory(directory, backupDirectory, numberOfBackups, fileRegex);
+    }
+
+    private static List<ConfigFile> getAllConfigFilesFromDirectory(ConfigDirectory configDirectory) {
+        StorageProviderInterface storage = StorageProvider.getInstance();
+        String regex = configDirectory.getFileRegex();
+
+        // listFiles(String folder) already contains an empty try-catch-block without warning message
+        // In case of an error an empty list is provided here.
+        List<Path> files = storage.listFiles(configDirectory.getDirectory());
+        List<ConfigFile> configFiles = new ArrayList<>();
+
+        for (int index = 0; index < files.size(); index++) {
+            Path file = files.get(index).toAbsolutePath();
+            if (storage.isFileExists(file)) {
+                String name = file.getFileName().toString();
+                if (regex != null && regex.length() > 0 && !name.matches(regex)) {
+                    continue;
+                }
+                ConfigFile configFile = new ConfigFile(file);
+                configFile.setConfigDirectory(configDirectory);
+                if (name.endsWith(".xml")) {
+                    configFile.setType(ConfigFile.Type.XML);
+                    configFiles.add(configFile);
+                } else if (name.endsWith(".properties")) {
+                    configFile.setType(ConfigFile.Type.PROPERTIES);
+                    configFiles.add(configFile);
+                }
+            }
+        }
+        return configFiles;
     }
 
     /**
@@ -120,12 +145,18 @@ public abstract class ConfigFileUtils {
      * rename(backup/fileName.xml.2, backup/fileName.xml.3) rename(backup/fileName.xml.1, backup/fileName.xml.2) copy(fileName.xml,
      * backup/fileName.xml.1)
      */
-    public static void createBackupFile(String fileName) {
+    public static void createBackupFile(ConfigFile configFile) {
+        ConfigDirectory configDirectory = configFile.getConfigDirectory();
+        String configDirectoryName = configDirectory.getDirectory();
+        String backupDirectory = configDirectory.getBackupDirectory();
+        String fileName = configFile.getFileName();
+        int numberOfBackups = configDirectory.getNumberOfBackups();
+
         StorageProviderInterface storage = StorageProvider.getInstance();
         try {
             // Delete oldest file if it exists...
-            String lastFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, ConfigFileUtils.numberOfBackupFiles);
-            lastFileName = ConfigFileUtils.backupDirectory + ConfigFileUtils.findBackupFileNameByEnding(lastFileName);
+            String lastFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, numberOfBackups);
+            lastFileName = backupDirectory + ConfigFileUtils.findBackupFileNameByEnding(backupDirectory, lastFileName);
             if (lastFileName != null) {
                 Path lastFile = Paths.get(lastFileName);
                 if (storage.isFileExists(lastFile)) {
@@ -134,11 +165,11 @@ public abstract class ConfigFileUtils {
             }
             // Rename all other backup files...
             // This is the number of the file that should be renamed to the file with the higher number
-            int backupId = ConfigFileUtils.numberOfBackupFiles - 1;
+            int backupId = numberOfBackups - 1;
             while (backupId > 0) {
                 String newerFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId);
-                newerFileName = ConfigFileUtils.findBackupFileNameByEnding(newerFileName);
-                String newerFileNameWithPath = ConfigFileUtils.backupDirectory + newerFileName;
+                newerFileName = ConfigFileUtils.findBackupFileNameByEnding(backupDirectory, newerFileName);
+                String newerFileNameWithPath = backupDirectory + newerFileName;
                 String olderFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId + 1);
                 if (newerFileName != null) {
                     String timestamp = ConfigFileUtils.extractTimestampFromFileName(newerFileName);
@@ -151,8 +182,9 @@ public abstract class ConfigFileUtils {
                 backupId--;
             }
             // Create backup file...
-            String content = ConfigFileUtils.readFile(ConfigFileUtils.configFileDirectory + fileName);
-            ConfigFileUtils.writeFile(ConfigFileUtils.createBackupFileNameWithTimestamp(fileName, 1), content);
+            String backupFileName = ConfigFileUtils.createBackupFileNameWithTimestamp(configFile, 1);
+            String content = ConfigFileUtils.readFile(configDirectoryName + fileName);
+            ConfigFileUtils.writeFile(backupDirectory, backupFileName, content);
             log.info("Wrote backup file: " + fileName);
         } catch (IOException ioException) {
             log.error(ioException);
@@ -164,20 +196,21 @@ public abstract class ConfigFileUtils {
         return fileName.substring(0, 19);
     }
 
+    private static String createBackupFileNameWithTimestamp(ConfigFile configFile, int backupId) {
+        String fileName = configFile.getFileName();
+        String name = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        String timestamp = formatter.format(new Date());
+        return configFile.getConfigDirectory().getBackupDirectory() + timestamp + "_" + name;
+    }
+
     private static String createBackupFileNameWithoutTimestamp(String fileName, int backupId) {
         return fileName + "." + backupId;
     }
 
-    private static String createBackupFileNameWithTimestamp(String fileName, int backupId) {
-        String name = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-        String timestamp = formatter.format(new Date());
-        return ConfigFileUtils.backupDirectory + timestamp + "_" + name;
-    }
-
-    private static String findBackupFileNameByEnding(String ending) {
+    private static String findBackupFileNameByEnding(String backupDirectory, String ending) {
         StorageProviderInterface storage = StorageProvider.getInstance();
-        List<String> fileNames = storage.list(ConfigFileUtils.backupDirectory);
+        List<String> fileNames = storage.list(backupDirectory);
         for (int index = 0; index < fileNames.size(); index++) {
             if (fileNames.get(index).endsWith(ending)) {
                 return fileNames.get(index);
@@ -199,9 +232,16 @@ public abstract class ConfigFileUtils {
         }
     }
 
-    public static void writeFile(String fileName, String content) {
-        if (!Paths.get(ConfigFileUtils.backupDirectory).toFile().exists()) {
-            ConfigFileUtils.createDirectory(ConfigFileUtils.backupDirectory);
+    /**
+     * The fileName parameter must already contain the backup directory. The backupDirectory parameter is used to check whether the directory exists.
+     *
+     * @param backupDirectory
+     * @param fileName
+     * @param content
+     */
+    public static void writeFile(String backupDirectory, String fileName, String content) {
+        if (!Paths.get(backupDirectory).toFile().exists()) {
+            ConfigFileUtils.createDirectory(backupDirectory);
         }
         if (!Paths.get(fileName).toFile().exists()) {
             ConfigFileUtils.createFile(fileName);
