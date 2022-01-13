@@ -92,6 +92,9 @@ public abstract class ConfigFileUtils {
             // No value is set, standard value should be used.
             // exception.printStackTrace();
         }
+        if (numberOfBackups < 0) {
+            numberOfBackups = 0;
+        }
 
         // Get the file regex parameter. If the regex is not used, it is set to null and not used in the file selection algorithm.
         String fileRegex = null;

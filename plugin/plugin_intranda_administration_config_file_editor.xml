@@ -12,7 +12,7 @@
     You can override this with the optional attribute backupFolder="myOwnBackupPath/".
     IMPORTANT: The directory must be an absolute path while the backupFolder parameter must be a relative path.
     The backup directory name may end with a slash (/), otherwise it will be added automatically.
-	To save backup files in the selected configuration directory, overwrite the backup folder with backupFolder="".
+    To save backup files in the selected configuration directory, overwrite the backup folder with backupFolder="".
 
     By default 8 backup files are kept, older files will be deleted.
     You can override this with the optional attribute backupFiles="".
