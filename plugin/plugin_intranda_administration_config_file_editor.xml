@@ -18,7 +18,7 @@
     You can override this with the optional attribute backupFiles="".
 
     You can filter the displayed configuration files in a directory with the fileRegex="" parameter.
-    If the paramter is not used or is empty, it will be ignored.
+    If the parameter is not used or is empty, it will be ignored.
     -->
 
     <configFileDirectories>
