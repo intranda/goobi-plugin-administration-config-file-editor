@@ -5,6 +5,7 @@
 	xmlns:h="http://xmlns.jcp.org/jsf/html"
 	xmlns:intranda="http://xmlns.jcp.org/jsf/composite/composites"
 	xmlns:jsf="http://xmlns.jcp.org/jsf"
+	xmlns:o="http://omnifaces.org/ui"
 	xmlns:p="http://primefaces.org/ui"
 	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
 	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
@@ -51,6 +52,13 @@
 		<h:panelGroup rendered="#{LoginForm.hasRole('Plugin_administration_config_file_editor')}">
 			<div class="row">
 				<h:form id="configFileEditorForm">
+					<h:panelGroup id="warnings" rendered="#{AdministrationForm.administrationPlugin.warningListNotEmpty}">
+						<ui:repeat var="item" value="#{AdministrationForm.administrationPlugin.warningMessages}">
+							<h:outputText id="warning"
+								styleClass="alert alert-danger"
+								value="{item}" />
+						</ui:repeat>
+					</h:panelGroup>
 					<!--
 					THIS HIDDEN DIV MUST BE RENDERED TO GET THE CURRENT CONFIG FILE TYPE
 					FROM THE BACKEND TO SET THE SYNTAX HIGHLIGHTING IN CODE MIRROR.
@@ -278,5 +286,12 @@
 				</h:form>
 			</div>
 		</h:panelGroup>
+
+        <!-- websocket communication -->
+        <o:socket channel="adminPluginPush" scope="session">
+            <f:ajax event="update" render="configFileEditorForm:warnings" />
+        </o:socket>
+        <!-- // websocket communication -->
+		
 	</composite:implementation>
 </ui:composition>

@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
 
+import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
@@ -25,6 +26,8 @@ public abstract class ConfigFileUtils {
 
     private static XMLConfiguration xmlConfiguration;
 
+    private static List<String> warningMessages;
+
     public static void init(XMLConfiguration configuration) {
         ConfigFileUtils.xmlConfiguration = configuration;
         ConfigFileUtils.standardCharset = Charset.forName("UTF-8");
@@ -35,17 +38,44 @@ public abstract class ConfigFileUtils {
     }
 
     public static List<ConfigFile> getAllConfigFiles(XMLConfiguration xml) {
+        ConfigFileUtils.warningMessages = new ArrayList<>();
         List<ConfigFile> configFiles = new ArrayList<>();
         int index = 0;
         ConfigDirectory directory;
         do {
             directory = ConfigFileUtils.tryToParseConfigDirectory(xml, index);
             if (directory != null) {
-                configFiles.addAll(ConfigFileUtils.getAllConfigFilesFromDirectory(directory));
+                if (ConfigFileUtils.isDirectoryAllowed(directory.getDirectory())) {
+                    configFiles.addAll(ConfigFileUtils.getAllConfigFilesFromDirectory(directory));
+                } else {
+                    String message = "The configured directory is not a subdirectory of the goobi parent directory and may not be used: ";
+                    ConfigFileUtils.warningMessages.add(message + directory.getDirectory());
+                }
             }
             index++;
         } while (directory != null);
         return configFiles;
+    }
+
+    public static List<String> getWarningMessages() {
+        return ConfigFileUtils.warningMessages;
+    }
+
+    /**
+     * This security check is needed to only allow directories that are inside the parent directory of the configured goobi directory. Especially
+     * paths that contain "../" (parent directory) may not direct to directories outside of that directory.
+     *
+     * @param directory
+     * @return
+     */
+    public static boolean isDirectoryAllowed(String directory) {
+        String goobiDirectoryName = ConfigurationHelper.getInstance().getGoobiFolder();
+        Path goobiDirectory = Paths.get(goobiDirectoryName).toAbsolutePath();
+        Path goobiParentDirectory = goobiDirectory.getParent().toAbsolutePath();
+        String absoluteGoobiParentDirectoryName = goobiParentDirectory.toString();
+
+        String absoluteRequestedDirectoryName = Paths.get(directory).toAbsolutePath().toString();
+        return absoluteRequestedDirectoryName.startsWith(absoluteGoobiParentDirectoryName);
     }
 
     private static ConfigDirectory tryToParseConfigDirectory(XMLConfiguration xml, int index) {

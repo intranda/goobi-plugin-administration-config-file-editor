@@ -20,6 +20,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
+import org.goobi.production.plugin.interfaces.IPushPlugin;
+import org.omnifaces.cdi.PushContext;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -36,7 +38,7 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @Log4j2
 @PluginImplementation
-public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlugin {
+public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlugin, IPushPlugin {
 
     public static final String MESSAGE_KEY_PREFIX = "plugin_administration_config_file_editor";
 
@@ -75,6 +77,8 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     @Getter
     private boolean validationError;
 
+    private PushContext pusher;
+
     /**
      * Constructor
      */
@@ -91,6 +95,11 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     @Override
     public String getGui() {
         return "/uii/plugin_administration_config_file_editor.xhtml";
+    }
+
+    @Override
+    public void setPushContext(PushContext pusher) {
+        this.pusher = pusher;
     }
 
     public String getCurrentEditorTitle() {
@@ -135,11 +144,30 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         return "";
     }
 
+    public List<String> getWarningMessages() {
+        return ConfigFileUtils.getWarningMessages();
+    }
+
+    public boolean isWarningListNotEmpty() {
+        if (ConfigFileUtils.getWarningMessages() == null) {
+            return true;
+        }
+        return ConfigFileUtils.getWarningMessages().size() > 0;
+    }
+
     public List<ConfigFile> getConfigFiles() {
         if (this.configFiles == null) {
             this.configFiles = ConfigFileUtils.getAllConfigFiles();
             this.initConfigFileDates();
         }
+
+        if (this.pusher != null) {
+            this.pusher.send("update");
+            log.debug("Updated GUI");
+        } else {
+            log.error("pusher is null in ConfigFileEditorPlugin!");
+        }
+
         if (this.configFiles != null) {
             return this.configFiles;
         } else {
