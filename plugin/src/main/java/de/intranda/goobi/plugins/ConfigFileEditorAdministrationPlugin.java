@@ -42,6 +42,9 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
 
     public static final String MESSAGE_KEY_PREFIX = "plugin_administration_config_file_editor";
 
+    // The name of this file is needed to exclude it from the list that is shown in the GUI
+    public static final String CONFIGURATION_FILE = "plugin_intranda_administration_config_file_editor.xml";
+
     @Getter
     private String title = "intranda_administration_config_file_editor";
 
@@ -85,6 +88,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     public ConfigFileEditorAdministrationPlugin() {
         XMLConfiguration configuration = ConfigPlugins.getPluginConfig(this.title);
         ConfigFileUtils.init(configuration);
+        this.getConfigFiles();
     }
 
     @Override
@@ -101,6 +105,13 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     public void setPushContext(PushContext pusher) {
         this.pusher = pusher;
     }
+
+    // TODO: In a future version this method can decide whether the current user is a super admin. The permission must be added by hand.
+    /*
+    public boolean isUserSuperAdmin() {
+        return Helper.getLoginBean().hasRole("Plugin_administration_config_file_editor_superadmin");
+    }
+    */
 
     public String getCurrentEditorTitle() {
         if (this.currentConfigFile != null) {
@@ -161,12 +172,15 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             this.initConfigFileDates();
         }
 
+        // This code block is only needed if the warnings for wrongly configured paths are used in the ConfigFileUtils.
+        /*
         if (this.pusher != null) {
             this.pusher.send("update");
             log.debug("Updated GUI");
         } else {
             log.error("pusher is null in ConfigFileEditorPlugin!");
         }
+        */
 
         if (this.configFiles != null) {
             return this.configFiles;
