@@ -20,6 +20,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
+import org.goobi.production.plugin.interfaces.IPushPlugin;
+import org.omnifaces.cdi.PushContext;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -36,9 +38,12 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @Log4j2
 @PluginImplementation
-public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlugin {
+public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlugin, IPushPlugin {
 
     public static final String MESSAGE_KEY_PREFIX = "plugin_administration_config_file_editor";
+
+    // The name of this file is needed to exclude it from the list that is shown in the GUI
+    public static final String CONFIGURATION_FILE = "plugin_intranda_administration_config_file_editor.xml";
 
     @Getter
     private String title = "intranda_administration_config_file_editor";
@@ -69,18 +74,13 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     @Setter
     private String currentConfigFileFileContent = null;
 
-    /**
-     * null means that no config file is selected
-     */
-    private String currentConfigFileFileContentBase64 = null;
-
     @Getter
     private String currentConfigFileType;
 
-    private String explanationTitle;
-
     @Getter
     private boolean validationError;
+
+    private PushContext pusher;
 
     /**
      * Constructor
@@ -88,6 +88,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     public ConfigFileEditorAdministrationPlugin() {
         XMLConfiguration configuration = ConfigPlugins.getPluginConfig(this.title);
         ConfigFileUtils.init(configuration);
+        this.getConfigFiles();
     }
 
     @Override
@@ -99,6 +100,18 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     public String getGui() {
         return "/uii/plugin_administration_config_file_editor.xhtml";
     }
+
+    @Override
+    public void setPushContext(PushContext pusher) {
+        this.pusher = pusher;
+    }
+
+    // TODO: In a future version this method can decide whether the current user is a super admin. The permission must be added by hand.
+    /*
+    public boolean isUserSuperAdmin() {
+        return Helper.getLoginBean().hasRole("Plugin_administration_config_file_editor_superadmin");
+    }
+    */
 
     public String getCurrentEditorTitle() {
         if (this.currentConfigFile != null) {
@@ -112,7 +125,8 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         StorageProviderInterface storageProvider = StorageProvider.getInstance();
         for (int index = 0; index < this.configFiles.size(); index++) {
             try {
-                String pathName = ConfigFileUtils.getConfigFileDirectory() + this.configFiles.get(index).getFileName();
+                ConfigFile file = this.configFiles.get(index);
+                String pathName = file.getConfigDirectory().getDirectory() + file.getFileName();
                 long lastModified = storageProvider.getLastModifiedDate(Paths.get(pathName));
                 SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
                 this.configFiles.get(index).setLastModified(formatter.format(lastModified));
@@ -141,11 +155,33 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         return "";
     }
 
+    public List<String> getWarningMessages() {
+        return ConfigFileUtils.getWarningMessages();
+    }
+
+    public boolean isWarningListNotEmpty() {
+        if (ConfigFileUtils.getWarningMessages() == null) {
+            return true;
+        }
+        return ConfigFileUtils.getWarningMessages().size() > 0;
+    }
+
     public List<ConfigFile> getConfigFiles() {
         if (this.configFiles == null) {
             this.configFiles = ConfigFileUtils.getAllConfigFiles();
             this.initConfigFileDates();
         }
+
+        // This code block is only needed if the warnings for wrongly configured paths are used in the ConfigFileUtils.
+        /*
+        if (this.pusher != null) {
+            this.pusher.send("update");
+            log.debug("Updated GUI");
+        } else {
+            log.error("pusher is null in ConfigFileEditorPlugin!");
+        }
+        */
+
         if (this.configFiles != null) {
             return this.configFiles;
         } else {
@@ -158,7 +194,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
     }
 
     public String getCurrentConfigFileFileName() {
-        return ConfigFileUtils.getConfigFileDirectory() + this.currentConfigFile.getFileName();
+        return this.currentConfigFile.getConfigDirectory().getDirectory() + this.currentConfigFile.getFileName();
     }
 
     public boolean isActiveConfigFile(ConfigFile configFile) {
@@ -199,9 +235,10 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         }
         // Only create a backup if the new file content differs from the existing file content
         if (this.hasFileContentChanged()) {
-            ConfigFileUtils.createBackupFile(this.currentConfigFile.getFileName());
+            ConfigFileUtils.createBackupFile(this.currentConfigFile);
         }
-        ConfigFileUtils.writeFile(this.getCurrentConfigFileFileName(), this.currentConfigFileFileContent);
+        String directory = this.currentConfigFile.getConfigDirectory().getDirectory();
+        ConfigFileUtils.writeFile(directory, this.getCurrentConfigFileFileName(), this.currentConfigFileFileContent);
         // Uncomment this when the file should be closed after saving
         // this.setConfigFile(-1);
         Helper.setMeldung("configFileEditor", Helper.getTranslation("savedConfigFileSuccessfully"), "");

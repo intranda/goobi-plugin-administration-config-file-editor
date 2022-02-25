@@ -1,20 +1,30 @@
 package de.intranda.goobi.plugins;
 
 import java.nio.file.Path;
+
 import lombok.Getter;
 import lombok.Setter;
 
 public class ConfigFile {
 
     @Getter
+    @Setter
+    private ConfigDirectory configDirectory;
+
+    @Getter
     private String fileName;
 
     @Getter
+    @Setter
     private Type type;
 
     @Getter
     @Setter
     private String lastModified;
+
+    public ConfigFile(Path path) {
+        this(path, null);
+    }
 
     public ConfigFile(Path path, Type type) {
         this.fileName = path.getFileName().toString();
