@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.goobi.io.BackupFileManager;
 
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
@@ -216,6 +217,20 @@ public abstract class ConfigFileUtils {
 
     private static boolean isOwnConfigFile(String fileName) {
         return fileName.equals(ConfigFileEditorAdministrationPlugin.CONFIGURATION_FILE);
+    }
+
+    public void createBackup(ConfigFile configFile) {
+        ConfigDirectory configDirectory = configFile.getConfigDirectory();
+        String directory = configDirectory.getDirectory();
+        String backupDirectory = configDirectory.getBackupDirectory();
+        String fileName = configFile.getFileName();
+        int numberOfBackups = configDirectory.getNumberOfBackups();
+
+        System.out.println("path: " + directory);
+        System.out.println("backup path: " + backupDirectory);
+        System.out.println("file: " + fileName);
+        System.out.println("number: " + numberOfBackups);
+        BackupFileManager.createBackup(directory, backupDirectory, fileName, numberOfBackups, true);
     }
 
     /**
