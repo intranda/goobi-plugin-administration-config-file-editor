@@ -5,13 +5,12 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.goobi.io.BackupFileManager;
 
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
@@ -25,8 +24,6 @@ public abstract class ConfigFileUtils {
     private static Charset standardCharset;
 
     private static XMLConfiguration xmlConfiguration;
-
-    private static List<String> warningMessages;
 
     public static void init(XMLConfiguration configuration) {
         ConfigFileUtils.xmlConfiguration = configuration;
@@ -218,88 +215,13 @@ public abstract class ConfigFileUtils {
         return fileName.equals(ConfigFileEditorAdministrationPlugin.CONFIGURATION_FILE);
     }
 
-    /**
-     * Rotates the backup files (older files get a higher number) and creates a backup file in "fileName.xml.1". The oldest file (e.g.
-     * "fileName.xml.10") will be removed
-     *
-     * How the algorithm works (e.g. this.NUMBER_OF_BACKUP_FILES == 10):
-     *
-     * delete(backup/fileName.xml.10) rename(backup/fileName.xml.9, backup/fileName.xml.10) rename(backup/fileName.xml.8, backup/fileName.xml.9) ...
-     * rename(backup/fileName.xml.2, backup/fileName.xml.3) rename(backup/fileName.xml.1, backup/fileName.xml.2) copy(fileName.xml,
-     * backup/fileName.xml.1)
-     */
-    public static void createBackupFile(ConfigFile configFile) {
+    public static void createBackup(ConfigFile configFile) throws IOException {
         ConfigDirectory configDirectory = configFile.getConfigDirectory();
-        String configDirectoryName = configDirectory.getDirectory();
+        String directory = configDirectory.getDirectory();
         String backupDirectory = configDirectory.getBackupDirectory();
         String fileName = configFile.getFileName();
         int numberOfBackups = configDirectory.getNumberOfBackups();
-
-        StorageProviderInterface storage = StorageProvider.getInstance();
-        try {
-            // Delete oldest file if it exists...
-            String lastFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, numberOfBackups);
-            lastFileName = backupDirectory + ConfigFileUtils.findBackupFileNameByEnding(backupDirectory, lastFileName);
-            if (lastFileName != null) {
-                Path lastFile = Paths.get(lastFileName);
-                if (storage.isFileExists(lastFile)) {
-                    storage.deleteFile(lastFile);
-                }
-            }
-            // Rename all other backup files...
-            // This is the number of the file that should be renamed to the file with the higher number
-            int backupId = numberOfBackups - 1;
-            while (backupId > 0) {
-                String newerFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId);
-                newerFileName = ConfigFileUtils.findBackupFileNameByEnding(backupDirectory, newerFileName);
-                String newerFileNameWithPath = backupDirectory + newerFileName;
-                String olderFileName = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId + 1);
-                if (newerFileName != null) {
-                    String timestamp = ConfigFileUtils.extractTimestampFromFileName(newerFileName);
-                    olderFileName = timestamp + "_" + olderFileName;
-                    Path newerFile = Paths.get(newerFileNameWithPath);
-                    if (storage.isFileExists(newerFile)) {
-                        storage.renameTo(newerFile, olderFileName);
-                    }
-                }
-                backupId--;
-            }
-            // Create backup file...
-            String backupFileName = ConfigFileUtils.createBackupFileNameWithTimestamp(configFile, 1);
-            String content = ConfigFileUtils.readFile(configDirectoryName + fileName);
-            ConfigFileUtils.writeFile(backupDirectory, backupFileName, content);
-            log.info("Wrote backup file: " + fileName);
-        } catch (IOException ioException) {
-            log.error(ioException);
-        }
-    }
-
-    private static String extractTimestampFromFileName(String fileName) {
-        // The date format must be "yyyy_MM_dd_HH_mm_ss"
-        return fileName.substring(0, 19);
-    }
-
-    private static String createBackupFileNameWithTimestamp(ConfigFile configFile, int backupId) {
-        String fileName = configFile.getFileName();
-        String name = ConfigFileUtils.createBackupFileNameWithoutTimestamp(fileName, backupId);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-        String timestamp = formatter.format(new Date());
-        return configFile.getConfigDirectory().getBackupDirectory() + timestamp + "_" + name;
-    }
-
-    private static String createBackupFileNameWithoutTimestamp(String fileName, int backupId) {
-        return fileName + "." + backupId;
-    }
-
-    private static String findBackupFileNameByEnding(String backupDirectory, String ending) {
-        StorageProviderInterface storage = StorageProvider.getInstance();
-        List<String> fileNames = storage.list(backupDirectory);
-        for (int index = 0; index < fileNames.size(); index++) {
-            if (fileNames.get(index).endsWith(ending)) {
-                return fileNames.get(index);
-            }
-        }
-        return null;
+        BackupFileManager.createBackup(directory, backupDirectory, fileName, numberOfBackups, true);
     }
 
     public static String readFile(String fileName) {
