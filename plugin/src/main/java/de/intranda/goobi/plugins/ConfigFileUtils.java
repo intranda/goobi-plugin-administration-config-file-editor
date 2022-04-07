@@ -228,7 +228,7 @@ public abstract class ConfigFileUtils {
         try {
             Charset charset = ConfigFileUtils.standardCharset;
             return FileUtils.readFileToString(new File(fileName), charset);
-        } catch (IOException ioException) {
+        } catch (IOException | IllegalArgumentException ioException) {
             ioException.printStackTrace();
             String message = "ConfigFileEditorAdministrationPlugin could not read file " + fileName;
             log.error(message);
@@ -254,7 +254,7 @@ public abstract class ConfigFileUtils {
         try {
             Charset charset = ConfigFileUtils.standardCharset;
             FileUtils.write(new File(fileName), content, charset);
-        } catch (IOException ioException) {
+        } catch (IOException | IllegalArgumentException ioException) {
             ioException.printStackTrace();
             String message = "ConfigFileEditorAdministrationPlugin could not write file " + fileName;
             log.error(message);

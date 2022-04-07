@@ -2,6 +2,8 @@ package de.intranda.goobi.plugins;
 
 import java.nio.file.Path;
 
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.helper.StorageProviderInterface;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,6 +24,9 @@ public class ConfigFile {
     @Setter
     private String lastModified;
 
+    @Getter
+    private boolean writable;
+
     public ConfigFile(Path path) {
         this(path, null);
     }
@@ -29,6 +34,8 @@ public class ConfigFile {
     public ConfigFile(Path path, Type type) {
         this.fileName = path.getFileName().toString();
         this.type = type;
+        StorageProviderInterface provider = StorageProvider.getInstance();
+        this.writable = provider.isWritable(path);
     }
 
     public enum Type {
