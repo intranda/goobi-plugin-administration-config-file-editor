@@ -299,10 +299,6 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         return ok;
     }
 
-    public void saveAndChangeConfigFile() throws ParserConfigurationException, SAXException, IOException {
-        this.save();
-    }
-
     private boolean hasFileContentChanged() {
         if (this.currentConfigFile == null) {
             return false;
