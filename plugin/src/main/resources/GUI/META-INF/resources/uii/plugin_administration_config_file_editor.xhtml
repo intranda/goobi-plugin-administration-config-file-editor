@@ -20,13 +20,30 @@
 		<script type="text/javascript" src="template/js/codemirror/mode/properties/properties.js?v=#{HelperForm.buildVersion}"/>
 		<script type="text/javascript" src="template/js/codemirror/mode/xml/xml.js?v=#{HelperForm.buildVersion}"/>
 		<script type="text/javascript" src="plugin_administration_config_file_editor.js" />
+
 		<style>
-            .CodeMirror {
-              height: auto;
-            }
-        </style>
-         
-        <!-- Without permission -->
+			.CodeMirror {
+				height: auto;
+			}
+		</style>
+
+		<!-- The area for messages that came from the backend -->
+		<div class="row">
+			<div class="col-sm-12">
+				<h:messages
+					for="configFileEditor"
+					escape="false"
+					errorClass="alert alert-danger"
+					infoClass="alert alert-info"
+					warnClass="alert"
+					showDetail="true"
+					showSummary="true"
+					tooltip="true"
+					styleClass="messages" />
+			</div>
+		</div>
+
+		<!-- Without permission -->
 		<h:panelGroup rendered="#{!LoginForm.hasRole('Plugin_administration_config_file_editor')}">
 			<div class="row">
 				<div class="col-sm-12">
@@ -163,43 +180,26 @@
 								<div class="box-content" id="boxUntilBottom" style="padding-top:5px;">
 									<!-- Buttons on top of text editor -->
 									<div class="form-actions clearfix">
-                                        <!-- The message area for saved-successfully-messages -->
-                                        <div class="pull-left">
-                                        <h:messages
-                                            for="configFileEditor"
-                                            escape="false"
-                                            errorClass="alert alert-danger"
-                                            infoClass="alert alert-info"
-                                            warnClass="alert"
-                                            showDetail="true"
-                                            showSummary="true"
-                                            tooltip="true"
-                                            styleClass="messages"
-                                            style="margin: 0 0 0 -15px"
-                                             />
-                                        </div>
-                                        <h:panelGroup rendered="#{AdministrationForm.administrationPlugin.isCurrentFileWritable()}">
-											<!-- Save-Button -->
-											<button
-												jsf:id="save"
-												class="btn btn-success pull-right font-size-s margin-bottom-most"
-												jsf:action="#{AdministrationForm.administrationPlugin.save}"
-												title="#{msgs.uebernehmen}"
-												onclick="loadEditorContent()">
-												<i class="fa fa-save margin-right-5"></i>
-												<h:outputText value="#{msgs.save}" />
-												<!--<f:ajax render="" />-->
-											</button>
-											<!-- Cancel-Button -->
-											<button
-												jsf:id="cancel"
-												class="btn margin-sides-10 font-size-s pull-right"
-												jsf:action="#{AdministrationForm.administrationPlugin.cancel}"
-												title="#{msgs.cancel}">
-												<h:outputText value="#{msgs.cancel}" />
-												<f:ajax render="configFileEditorForm" />
-											</button>
-										</h:panelGroup>
+										<!-- Save-Button -->
+										<button
+											jsf:id="save"
+											class="btn btn-success pull-right font-size-s margin-bottom-most"
+											jsf:action="#{AdministrationForm.administrationPlugin.save}"
+											title="#{msgs.uebernehmen}"
+											onclick="loadEditorContent()">
+											<i class="fa fa-save margin-right-5"></i>
+											<h:outputText value="#{msgs.save}" />
+											<!--<f:ajax render="" />-->
+										</button>
+										<!-- Cancel-Button -->
+										<button
+											jsf:id="cancel"
+											class="btn margin-sides-10 font-size-s pull-right"
+											jsf:action="#{AdministrationForm.administrationPlugin.cancel}"
+											title="#{msgs.cancel}">
+											<h:outputText value="#{msgs.cancel}" />
+											<f:ajax render="configFileEditorForm" />
+										</button>
 									</div>
 									<!-- Text editor -->
 									<div
