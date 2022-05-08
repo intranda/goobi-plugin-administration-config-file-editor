@@ -201,6 +201,14 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         return this.findConfigFileIndex(configFile) == this.currentConfigFileIndex;
     }
 
+    public boolean isWritable(ConfigFile configFile) {
+        return configFile.isWritable();
+    }
+
+    public boolean isCurrentFileWritable() {
+        return this.currentConfigFile.isWritable();
+    }
+
     public void editConfigFile(ConfigFile configFile) {
         int index = this.findConfigFileIndex(configFile);
         if (this.hasFileContentChanged()) {
@@ -210,6 +218,10 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             return;
         }
         this.setConfigFile(index);
+        if (!this.currentConfigFile.isWritable()) {
+            String key = "plugin_administration_config_file_editor_file_not_writable_check_permissions";
+            Helper.setMeldung("configFileEditor", Helper.getTranslation(key), "");
+        }
     }
 
     public void editConfigFileIgnore() {
@@ -285,10 +297,6 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
             this.validationError = false;
         }
         return ok;
-    }
-
-    public void saveAndChangeConfigFile() throws ParserConfigurationException, SAXException, IOException {
-        this.save();
     }
 
     private boolean hasFileContentChanged() {

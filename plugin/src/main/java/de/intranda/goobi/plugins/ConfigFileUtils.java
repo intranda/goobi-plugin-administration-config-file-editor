@@ -221,18 +221,26 @@ public abstract class ConfigFileUtils {
         String backupDirectory = configDirectory.getBackupDirectory();
         String fileName = configFile.getFileName();
         int numberOfBackups = configDirectory.getNumberOfBackups();
-        BackupFileManager.createBackup(directory, backupDirectory, fileName, numberOfBackups, true);
+        try {
+            BackupFileManager.createBackup(directory, backupDirectory, fileName, numberOfBackups, false);
+        } catch (IOException ioException) {
+            String message = "ConfigFileEditorAdministrationPlugin could not create the backup file.";
+            message += " Please check the permissions in the configured backup directory.";
+            log.error(message);
+            String key = "plugin_administration_config_file_editor_backup_not_writable_check_permissions";
+            Helper.setFehlerMeldung("configFileEditor", Helper.getTranslation(key), "");
+        }
     }
 
     public static String readFile(String fileName) {
         try {
             Charset charset = ConfigFileUtils.standardCharset;
             return FileUtils.readFileToString(new File(fileName), charset);
-        } catch (IOException ioException) {
+        } catch (IOException | IllegalArgumentException ioException) {
             ioException.printStackTrace();
             String message = "ConfigFileEditorAdministrationPlugin could not read file " + fileName;
             log.error(message);
-            Helper.setFehlerMeldung(message);
+            Helper.setFehlerMeldung("configFileEditor", message, "");
             return "";
         }
     }
@@ -254,11 +262,11 @@ public abstract class ConfigFileUtils {
         try {
             Charset charset = ConfigFileUtils.standardCharset;
             FileUtils.write(new File(fileName), content, charset);
-        } catch (IOException ioException) {
+        } catch (IOException | IllegalArgumentException ioException) {
             ioException.printStackTrace();
             String message = "ConfigFileEditorAdministrationPlugin could not write file " + fileName;
             log.error(message);
-            Helper.setFehlerMeldung(message);
+            Helper.setFehlerMeldung("configFileEditor", message, "");
         }
     }
 
