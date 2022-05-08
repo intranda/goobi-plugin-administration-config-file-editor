@@ -108,10 +108,10 @@
 											<button
 												jsf:id="edit"
 												class="btn margin-sides-5 #{AdministrationForm.administrationPlugin.isActiveConfigFile(item) ? 'btn-primary' : ''}"
-												title="#{msgs.plugin_administration_config_file_editor_edit_file}"
+												title="#{AdministrationForm.administrationPlugin.isWritable(item) ? msgs.plugin_administration_config_file_editor_edit_file : msgs.plugin_administration_config_file_editor_show_file}"
 												jsf:rel="tooltip"
 												jsf:action="#{AdministrationForm.administrationPlugin.editConfigFile(item)}">
-												<i class="fa fa-pencil"></i>
+												<i class="fa #{AdministrationForm.administrationPlugin.isWritable(item) ? 'fa-pencil' : 'fa-eye'}" style="width: 15px;"></i>
 												<f:ajax render="configFileEditorForm" />
 											</button>
 										</h:panelGroup>
@@ -122,8 +122,8 @@
 												type="button"
 												jsf:onclick="loadEditorContent()"
 												jsf:action="#{AdministrationForm.administrationPlugin.editConfigFile(item)}"
-												title="#{msgs.plugin_administration_config_file_editor_edit_file}">
-												<i class="fa fa-pencil"></i>
+												title="#{AdministrationForm.administrationPlugin.isWritable(item) ? msgs.plugin_administration_config_file_editor_edit_file : msgs.plugin_administration_config_file_editor_show_file}">
+												<i class="fa #{AdministrationForm.administrationPlugin.isWritable(item) ? 'fa-pencil' : 'fa-eye'}" style="width: 15px;"></i>
 												<f:ajax render="@form" execute="@form" />
 											</button>
 										</h:panelGroup>
@@ -178,26 +178,28 @@
                                             style="margin: 0 0 0 -15px"
                                              />
                                         </div>
-										<!-- Save-Button -->
-										<button
-											jsf:id="save"
-											class="btn btn-success pull-right font-size-s margin-bottom-most"
-											jsf:action="#{AdministrationForm.administrationPlugin.save}"
-											title="#{msgs.uebernehmen}"
-											onclick="loadEditorContent()">
-											<i class="fa fa-save margin-right-5"></i>
-											<h:outputText value="#{msgs.save}" />
-											<!--<f:ajax render="" />-->
-										</button>
-										<!-- Cancel-Button -->
-										<button
-											jsf:id="cancel"
-											class="btn margin-sides-10 font-size-s pull-right"
-											jsf:action="#{AdministrationForm.administrationPlugin.cancel}"
-											title="#{msgs.cancel}">
-											<h:outputText value="#{msgs.cancel}" />
-											<f:ajax render="configFileEditorForm" />
-										</button>
+                                        <h:panelGroup rendered="#{AdministrationForm.administrationPlugin.isCurrentFileWritable()}">
+											<!-- Save-Button -->
+											<button
+												jsf:id="save"
+												class="btn btn-success pull-right font-size-s margin-bottom-most"
+												jsf:action="#{AdministrationForm.administrationPlugin.save}"
+												title="#{msgs.uebernehmen}"
+												onclick="loadEditorContent()">
+												<i class="fa fa-save margin-right-5"></i>
+												<h:outputText value="#{msgs.save}" />
+												<!--<f:ajax render="" />-->
+											</button>
+											<!-- Cancel-Button -->
+											<button
+												jsf:id="cancel"
+												class="btn margin-sides-10 font-size-s pull-right"
+												jsf:action="#{AdministrationForm.administrationPlugin.cancel}"
+												title="#{msgs.cancel}">
+												<h:outputText value="#{msgs.cancel}" />
+												<f:ajax render="configFileEditorForm" />
+											</button>
+										</h:panelGroup>
 									</div>
 									<!-- Text editor -->
 									<div
