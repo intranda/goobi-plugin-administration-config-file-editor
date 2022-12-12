@@ -248,12 +248,11 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         // Only create a backup if the new file content differs from the existing file content
         if (this.hasFileContentChanged()) {
             ConfigFileUtils.createBackup(this.currentConfigFile);
+            String directory = this.currentConfigFile.getConfigDirectory().getDirectory();
+            ConfigFileUtils.writeFile(directory, this.getCurrentConfigFileFileName(), this.currentConfigFileFileContent);
         }
-        String directory = this.currentConfigFile.getConfigDirectory().getDirectory();
-        ConfigFileUtils.writeFile(directory, this.getCurrentConfigFileFileName(), this.currentConfigFileFileContent);
         // Uncomment this when the file should be closed after saving
         // this.setConfigFile(-1);
-        Helper.setMeldung("configFileEditor", Helper.getTranslation("savedConfigFileSuccessfully"), "");
         // Switch to an other file (configFileIndexAfterSaveOrIgnore) when "Save" was clicked
         // because the file should be changed and an other file is already selected
         if (this.configFileIndexAfterSaveOrIgnore != -1) {
