@@ -3,7 +3,7 @@ package de.intranda.goobi.plugins;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -147,7 +147,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         }
         Base64.Decoder decoder = Base64.getDecoder();
         byte[] decoded = decoder.decode(content);
-        this.currentConfigFileFileContent = new String(decoded, Charset.forName("UTF-8"));
+        this.currentConfigFileFileContent = new String(decoded, StandardCharsets.UTF_8);
     }
 
     public String getCurrentConfigFileFileContentBase64() {
@@ -267,7 +267,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
 
     private boolean checkProperties() throws UnsupportedEncodingException, IOException {
         PropertiesConfiguration apacheProp = new PropertiesConfiguration();
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(this.currentConfigFileFileContent.getBytes("UTF-8"))) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(this.currentConfigFileFileContent.getBytes(StandardCharsets.UTF_8))) {
             apacheProp.load(bais);
         } catch (ConfigurationException | ConfigurationRuntimeException e) {
             Helper.setFehlerMeldung("configFileEditor", e.getMessage(), "");
@@ -346,7 +346,7 @@ public class ConfigFileEditorAdministrationPlugin implements IAdministrationPlug
         ReportErrorsErrorHandler eh = new ReportErrorsErrorHandler();
         builder.setErrorHandler(eh);
 
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes("UTF-8"))) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))) {
             builder.parse(bais);
         } catch (SAXParseException e) {
             //ignore this, because we collect the errors in the errorhandler and give them to the user.
