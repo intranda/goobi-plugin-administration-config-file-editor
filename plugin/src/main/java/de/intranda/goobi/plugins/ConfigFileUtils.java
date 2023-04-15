@@ -229,7 +229,13 @@ public abstract class ConfigFileUtils {
             message += " Please check the permissions in the configured backup directory.";
             log.error(message);
             String key = "plugin_administration_config_file_editor_backup_not_writable_check_permissions";
-            Helper.setFehlerMeldung("configFileEditor", Helper.getTranslation(key), "");
+            StringBuffer buffer = new StringBuffer();
+            buffer.append(Helper.getTranslation(key));
+            buffer.append(" (");
+            buffer.append(backupDirectory);
+            buffer.append(fileName);
+            buffer.append(")");
+            Helper.setFehlerMeldung("configFileEditor", buffer.toString(), "");
         }
     }
 
@@ -263,6 +269,7 @@ public abstract class ConfigFileUtils {
         try {
             Charset charset = ConfigFileUtils.standardCharset;
             FileUtils.write(new File(fileName), content, charset);
+            Helper.setMeldung("configFileEditor", Helper.getTranslation("savedConfigFileSuccessfully"), "");
         } catch (IOException | IllegalArgumentException ioException) {
             ioException.printStackTrace();
             String message = "ConfigFileEditorAdministrationPlugin could not write file " + fileName;
