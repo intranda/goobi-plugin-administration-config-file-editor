@@ -26,7 +26,7 @@ function initConfigFileEditor() {
 }
 
 function loadEditorContent() {
-	var configFileTextAreaBase64 = document.getElementById("configFileEditorForm:configFileEditorBase64");
+	var configFileTextAreaBase64 = document.getElementById("configFileEditorForm:contentbox:configFileEditorBase64");
 	let string = configFileEditor.getValue();
 	console.log("Load: " + string);
 	configFileTextAreaBase64.value = base64EncodeUnicode(string);
