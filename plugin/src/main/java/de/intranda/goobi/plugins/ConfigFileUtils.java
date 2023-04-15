@@ -3,6 +3,7 @@ package de.intranda.goobi.plugins;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public abstract class ConfigFileUtils {
 
     public static void init(XMLConfiguration configuration) {
         ConfigFileUtils.xmlConfiguration = configuration;
-        ConfigFileUtils.standardCharset = Charset.forName("UTF-8");
+        ConfigFileUtils.standardCharset = StandardCharsets.UTF_8;
     }
 
     public static List<ConfigFile> getAllConfigFiles() {
