@@ -1,4 +1,5 @@
 var configFileEditor;
+var debug = false;
 
 function initConfigFileEditor() {
 	var configFileTextArea = document.getElementById("configFileEditor");
@@ -19,16 +20,14 @@ function initConfigFileEditor() {
 			document.getElementById("configFileEditor").innerHTML = editor.getValue();
 		});
 	}
-	window.addEventListener('resize', function() {
-		// setHeightOfTextEditor();
-	});
-	//setHeightOfTextEditor();
 }
 
 function loadEditorContent() {
 	var configFileTextAreaBase64 = document.getElementById("configFileEditorForm:contentbox:configFileEditorBase64");
 	let string = configFileEditor.getValue();
-	console.log("Load: " + string);
+	if (debug){
+	  // console.log("Load: " + string);
+	}
 	configFileTextAreaBase64.value = base64EncodeUnicode(string);
 }
 
@@ -46,18 +45,36 @@ function loadEditorContentAndInit() {
 	initConfigFileEditor();
 }
 
-function setHeightOfTextEditor() {
-	var documentHeight = document.body.clientHeight;
-	var offset = $("#boxUntilBottom").offset();
-	var xPosition = offset.left - $(window).scrollLeft();
-	var yPosition = offset.top - $(window).scrollTop();
-	var border = 20;
-	var resultHeight = documentHeight - yPosition - border;
-	var box = document.getElementById("boxUntilBottom");
-	box.style.height = resultHeight + "px";
-	var codeMirror = document.getElementsByClassName("CodeMirror")[0];
-	codeMirror.style.height = "100%";
-	var borderBox = document.getElementById("configFileEditorBorder");
-	// 100 is an estimated height of buttons and spaces
-	borderBox.style.height = (resultHeight - 100) + "px";
+function stickyBoxes() {
+	var heightLeft = document.getElementById('leftarea').children[0].clientHeight;
+	var heightRight = document.getElementById('rightarea').children[0].clientHeight;
+	if (debug){
+		console.log(heightLeft);
+		console.log(heightRight);
+	}
+	document.getElementById('leftarea').style.height = heightLeft + 2 + "px";
+	document.getElementById('rightarea').style.height = heightRight + 2 + "px";
+	
+	var Sticky = new hcSticky('#rightarea', {
+    	stickTo: '#leftarea',
+    	responsive: {
+		    768: {
+		      disable: true
+		    }
+		  }
+	});
+
+	if (debug){
+		console.log("stickyBoxes was called ");
+	}
 }
+	
+document.addEventListener('DOMContentLoaded', function() {
+  stickyBoxes();
+});
+
+jsf.ajax.addOnEvent( function( data ) {
+        if (data.status == "success"){
+		stickyBoxes();
+	} 
+});

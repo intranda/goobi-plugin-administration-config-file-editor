@@ -27,9 +27,6 @@
 			}
 		</style>
 
-
-
-  
 		<!-- The area for messages that came from the backend -->
 		<h:messages
 			for="configFileEditor"
@@ -80,7 +77,7 @@
     			</div>
 				
                 <!-- LEFT AREA -->
-                <div class="col-sm-12 col-md-4">
+                <div class="col-sm-12 col-md-4 mb-3" id="leftarea">
 				
                     <!-- BOX WITH FILES -->
                     <intranda:box
@@ -176,7 +173,7 @@
                 
                 
                 <!-- RIGHT AREA -->
-                <div class="col-sm-12 col-md-8">
+                <div class="col-sm-12 col-md-8" id="rightarea">
 					<h:panelGroup rendered="#{AdministrationForm.administrationPlugin.currentConfigFile != null}">
 						
                         <intranda:box
@@ -256,48 +253,64 @@
 				</div>
                 <!-- // RIGHT AREA -->
                 
+                <!-- MODAL TO ASK FOR SAVING -->
 				<div
-					class="modal fade" id="saveDialog" tabindex="-1" role="modal" aria-labelledby="myDialogLabel"
+					class="modal fade" 
+                    id="saveDialog" 
+                    tabindex="-1" 
+                    role="modal" 
+                    aria-labelledby="myDialogLabel"
 					jsf:rendered="#{AdministrationForm.administrationPlugin.configFileContentChanged}">
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">
-							<div class="modal-header">
+							
+                            <!-- MODAL HEADER -->
+                            <div class="modal-header bg-primary-400 text-white">
 								<h4 class="modal-title" id="myDialogLabel">
 									<h:outputText value="#{msgs.plugin_administration_config_file_editor_unsaved_changes}" />
 								</h4>
+                                <button
+                                    type="button"
+                                    class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
 							</div>
-							<div class="modal-body">
+							<!-- // MODAL HEADER -->
+                            
+                            <!-- MODAL BODY -->
+                            <div class="modal-body">
 								<p>#{msgs.plugin_administration_config_file_editor_save_unsaved_changes}</p>
 							</div>
-							<div class="modal-footer">
-								<div class="btn-group">
-									<button
-										type="button"
-										class="btn margin-sides-10"
-										style="width: 120px !important"
-										data-dismiss="modal"
-										aria-hidden="true">
-										#{msgs.cancel}
-									</button>
-									<button
-										class="btn margin-sides-10"
-										style="width: 120px !important"
-										jsf:id="ignoreChangedFile"
-										jsf:action="#{AdministrationForm.administrationPlugin.editConfigFileIgnore}">
-										#{msgs.no}
-									</button>
-									<button
-										class="btn margin-sides-10 btn-success"
-										style="width: 120px !important"
-										jsf:id="saveWhenChangedFile"
-										jsf:action="#{AdministrationForm.administrationPlugin.save}">
-										#{msgs.yes}
-									</button>
-								</div>
+							<!-- // MODAL BODY -->
+                            
+                            <!-- MODAL FOOTER -->
+                            <div class="modal-footer">
+								<button
+									class="btn btn-hot"
+									jsf:id="ignoreChangedFile"
+									jsf:action="#{AdministrationForm.administrationPlugin.editConfigFileIgnore}">
+									<i class="fa fa-trash-o"></i>
+                                    <span>
+                                        #{msgs.discard}
+                                    </span>
+								</button>
+								<button
+									class="btn btn-success"
+									jsf:id="saveWhenChangedFile"
+									jsf:action="#{AdministrationForm.administrationPlugin.save}">
+									<i class="fa fa-save"></i>
+                                    <span>
+                                        #{msgs.save}
+                                    </span>
+								</button>
 							</div>
+                            <!-- // MODAL FOOTER -->
+                            
 						</div>
 					</div>
 				</div>
+                <!-- // MODAL TO ASK FOR SAVING -->
+                
 				<div jsf:id="test" jsf:rendered="#{AdministrationForm.administrationPlugin.configFileContentChanged}">
 					<script>
 						$('#saveDialog').modal('show')
