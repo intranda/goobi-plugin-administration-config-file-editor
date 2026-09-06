@@ -1,6 +1,9 @@
 # Goobi workflow Plugin: goobi-plugin-administration-config-file-editor
 
-<img src="https://goobi.io/wp-content/uploads/logo_goobi_plugin.png" align="right" style="margin:0 0 20px 20px;" alt="Plugin for Goobi workflow" width="175" height="109">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://goobi.io/logo_goobi_workflow_dark.png">
+  <img src="https://goobi.io/logo_goobi_workflow.png" align="right" alt="Plugin for Goobi workflow" width="240" height="132" hspace="20" vspace="10">
+</picture>
 
 This is an Administration Plugin for Goobi workflow which allow to get reading and writing access to all important configuration files of Goobi workflow which are usually located inside of the folder `/opt/digiverso/goobi/config/`.
 
