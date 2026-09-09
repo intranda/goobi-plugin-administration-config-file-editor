@@ -2,7 +2,7 @@
 title: Configuration editor
 identifier: intranda_administration_config_file_editor
 description: This is a plugin for Goobi workflow that allows you to edit all the important configuration files of Goobi workflow.
-published: true
+published: false
 ---
 ## Introduction
 This plugin is used to directly edit the various configuration files of Goobi workflow directly from the user interface within the web browser.
